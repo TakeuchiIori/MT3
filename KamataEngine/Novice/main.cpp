@@ -338,6 +338,34 @@ Matrix4x4 MakeRotateMatrixZ(float radian){
 	return result;
 
 };
+
+//=============================11. 3次元のアフィン変換行列=============================//
+Matrix4x4 MakeAffineMatrix(const Vector3& scale, const Vector3& rotate, const Vector3& translate) {
+	Matrix4x4 result;
+	result.m[0][0] = scale.x * rotate.x;
+	result.m[0][1] = scale.x;
+	result.m[0][2] = scale.x;
+	result.m[0][3] = 0;
+
+	result.m[1][0] = scale.y;
+	result.m[1][1] = scale.y;
+	result.m[1][2] = scale.y;
+	result.m[1][3] = 0;
+
+	result.m[2][0] = scale.z;
+	result.m[2][1] = scale.z;
+	result.m[2][2] = scale.z;
+	result.m[2][3] = 0;
+
+	result.m[3][0] = translate.x;
+	result.m[3][1] = translate.y;
+	result.m[3][2] = translate.z;
+	result.m[3][3] = 1;
+
+	return result;
+
+}
+
 static const int kRowHeight = 20;
 static const int kColumnWidth = 60;
 void MatrixScreenPrintf(int x, int y, const Matrix4x4& matrix,const char* name) {
@@ -365,11 +393,10 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	char keys[256] = {0};
 	char preKeys[256] = {0};
 
+	Vector3 scale{1.2f, 0.79f, -2.1f};
 	Vector3 rotate{0.4f, 1.43f, -0.8f};
-	Matrix4x4 rotateMatrixX = MakeRotateMatrixX(rotate.x);
-	Matrix4x4 rotateMatrixY = MakeRotateMatrixY(rotate.y);
-	Matrix4x4 rotateMatrixZ = MakeRotateMatrixZ(rotate.z);
-	Matrix4x4 rotateMatrixXYZ = Multiply(rotateMatrixX, Multiply(rotateMatrixY, rotateMatrixZ));
+	Vector3 translate{2.7f, -4.15f, 1.57f};
+	Matrix4x4 worldMatrix = MakeAffineMatrix(scale, rotate, translate);
 
 	// ウィンドウの×ボタンが押されるまでループ
 	while (Novice::ProcessMessage() == 0) {
@@ -393,10 +420,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		/// ↓描画処理ここから
 		///
 		
-		MatrixScreenPrintf(0, 0, rotateMatrixX, "rotateMatrixX");
-		MatrixScreenPrintf(0, kRowHeight * 6, rotateMatrixY, "rotateMatrixY");
-		MatrixScreenPrintf(0, kRowHeight * 6 * 2, rotateMatrixZ, "rotateMatrixZ");
-		MatrixScreenPrintf(0, kRowHeight * 6 * 3, rotateMatrixXYZ, "rotateMatrixXYZ");
+		MatrixScreenPrintf(0, 0, worldMatrix, "worldMatrix");
 		
 		///
 		/// ↑描画処理ここまで
