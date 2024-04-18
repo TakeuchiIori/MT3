@@ -342,19 +342,23 @@ Matrix4x4 MakeRotateMatrixZ(float radian){
 //=============================11. 3次元のアフィン変換行列=============================//
 Matrix4x4 MakeAffineMatrix(const Vector3& scale, const Vector3& rotate, const Vector3& translate) {
 	Matrix4x4 result;
-	result.m[0][0] = scale.x * rotate.x;
-	result.m[0][1] = scale.x;
-	result.m[0][2] = scale.x;
+	Matrix4x4 rotateMatrixX = MakeRotateMatrixX(rotate.x);
+	Matrix4x4 rotateMatrixY = MakeRotateMatrixY(rotate.y);
+	Matrix4x4 rotateMatrixZ = MakeRotateMatrixZ(rotate.z);
+	Matrix4x4 rotateMatrixXYZ = Multiply(rotateMatrixX, Multiply(rotateMatrixY, rotateMatrixZ));
+	result.m[0][0] = scale.x * rotateMatrixXYZ.m[0][0];
+	result.m[0][1] = scale.x * rotateMatrixXYZ.m[0][1];
+	result.m[0][2] = scale.x * rotateMatrixXYZ.m[0][2];
 	result.m[0][3] = 0;
 
-	result.m[1][0] = scale.y;
-	result.m[1][1] = scale.y;
-	result.m[1][2] = scale.y;
+	result.m[1][0] = scale.y * rotateMatrixXYZ.m[1][0];
+	result.m[1][1] = scale.y * rotateMatrixXYZ.m[1][1];
+	result.m[1][2] = scale.y * rotateMatrixXYZ.m[1][2];
 	result.m[1][3] = 0;
 
-	result.m[2][0] = scale.z;
-	result.m[2][1] = scale.z;
-	result.m[2][2] = scale.z;
+	result.m[2][0] = scale.z * rotateMatrixXYZ.m[2][0];
+	result.m[2][1] = scale.z * rotateMatrixXYZ.m[2][1];
+	result.m[2][2] = scale.z * rotateMatrixXYZ.m[2][2];
 	result.m[2][3] = 0;
 
 	result.m[3][0] = translate.x;
