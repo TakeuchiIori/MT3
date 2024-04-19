@@ -379,8 +379,8 @@ Matrix4x4 MakePerspectiveFovMatrix(float FovY, float aspectRatio, float nearClip
 	result.m[0][2] = 0;
 	result.m[0][3] = 0;
 	
-	result.m[1][0] = std::tanf(FovY / 2);
-	result.m[1][1] = 0;
+	result.m[1][0] = 0;
+	result.m[1][1] = (1 /std::tanf(FovY / 2)); 
 	result.m[1][2] = 0;
 	result.m[1][3] = 0;
 	
