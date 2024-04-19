@@ -274,7 +274,7 @@ Matrix4x4 MakeRotateMatrixX(float radian){
 	result.m[1][3] = 0;
 
 	result.m[2][0] = 0;
-	result.m[2][1] = std::sinf(radian) * -1;
+	result.m[2][1] = - std::sinf(radian);
 	result.m[2][2] = std::cosf(radian);
 	result.m[2][3] = 0;
 
@@ -291,7 +291,7 @@ Matrix4x4 MakeRotateMatrixY(float radian){
 	Matrix4x4 result;
 	result.m[0][0] = std::cosf(radian);
 	result.m[0][1] = 0;
-	result.m[0][2] = std::sinf(radian) * -1;
+	result.m[0][2] = - std::sinf(radian);
 	result.m[0][3] = 0;
 
 	result.m[1][0] = 0;
@@ -320,7 +320,7 @@ Matrix4x4 MakeRotateMatrixZ(float radian){
 	result.m[0][2] = 0;
 	result.m[0][3] = 0;
 
-	result.m[1][0] = std::sinf(radian) * -1;
+	result.m[1][0] = - std::sinf(radian);
 	result.m[1][1] = std::cosf(radian);
 	result.m[1][2] = 0;
 	result.m[1][3] = 0;
