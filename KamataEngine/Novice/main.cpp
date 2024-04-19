@@ -462,6 +462,8 @@ Vector3 Cross(const Vector3& v1, const Vector3& v2) {
 
 static const int kRowHeight = 20;
 static const int kColumnWidth = 60;
+static const float kWindowWidth = 1280.0f;
+static const float kWindowHight = 720.0f;
 void MatrixScreenPrintf(int x, int y, const Matrix4x4& matrix,const char* name) {
 	Novice::ScreenPrintf(x, y, "%s", name);
 	for (int row = 0; row < 4; ++row) {
@@ -493,7 +495,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
 	Vector3 rotate{1.0f, 1.0f, 1.0f};
 	Vector3 translate{1.0f, 1.0f, 1.0f};
-
+	Vector3 cameraposition{0.0f, 0.0f, -0.1f};
 	// ウィンドウの×ボタンが押されるまでループ
 	while (Novice::ProcessMessage() == 0) {
 		// フレームの開始
@@ -506,26 +508,45 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		///
 		/// ↓更新処理ここから
 		
-		if (true) {
-			if (keys[DIK_W]) {
+		if (keys[DIK_W]) {
 				translate.y += 2.0f;
-			}
-			if (keys[DIK_A]) {
-				translate.x -= 2.0f;
-			}
-			if (keys[DIK_S]) {
-				translate.y -= 2.0f;
-			}
-			if (keys[DIK_D]) {
-				translate.x += 2.0f;
-			}
-			MakeRotateMatrixY()
 		}
+		if (keys[DIK_A]) {
+				translate.x -= 2.0f;
+		}
+		if (keys[DIK_S]) {
+				translate.y -= 2.0f;
+		}
+		if (keys[DIK_D]) {
+				translate.x += 2.0f;
+		}
+
+		MakeRotateMatrixY(rotate.y);
+		// 各種7行列の計算
+		Matrix4x4 worldMatrix = MakeAffineMatrix({1.0f, 1.0f, 1.0f}, rotate, translate);
+		Matrix4x4 cameraMatrix = MakeAffineMatrix({1.0f, 1.0f, 1.0f}, {0.0f, 0.0f, 0.0f}, cameraposition);
+		Matrix4x4 viewMatrix = Inverse(cameraMatrix);
+		Matrix4x4 projectionMatrix = MakePerspectiveFovMatrix(0.45f, kWindowWidth / kWindowHight, 0.1f, 100.0f);
+		Matrix4x4 worldViewProjectionMatrix = Multiply(worldMatrix, Multiply(viewMatrix, projectionMatrix));
+		Matrix4x4 viewportMatrix = MakeViewportMatrix(0, 0, kWindowWidth, kWindowHight, 0.0f, 1.0f);
+		Vector3 screenVertices[3];
+		Vector3 kLocalVertices[3];
+		for (uint32_t i = 0; i < 3; ++i) {
+			Vector3 ndcVertex = Transform(kLocalVertices[i], worldViewProjectionMatrix);
+			screenVertices[i] = Transform(ndcVertex, viewportMatrix);
+		}
+
 		
 
 		///
 		/// ↑更新処理ここまで
 		///
+
+		Novice::DrawTriangle(int(screenVertices[0].x), int(screenVertices[0].y), int(screenVertices[1].x), int(screenVertices[1].y),
+							 int(screenVertices[2].x),int(screenVertices[2].y),RED,kFillModeSolid);
+		
+
+
 
 		///
 		/// ↓描画処理ここから
