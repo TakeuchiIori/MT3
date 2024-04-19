@@ -448,6 +448,18 @@ Matrix4x4 MakeViewportMatrix(float left, float top, float width, float height, f
 	return result;
 
 };
+
+//クロス積
+Vector3 Cross(const Vector3& v1, const Vector3& v2) {
+	Vector3 result;
+	result.x = (v1.y * v2.z) - (v1.z * v2.y);
+	result.y = (v1.z * v2.x) - (v1.x * v2.z);
+	result.z = (v1.x * v2.y) - (v1.y * v2.x);
+
+	return result;
+}
+
+
 static const int kRowHeight = 20;
 static const int kColumnWidth = 60;
 void MatrixScreenPrintf(int x, int y, const Matrix4x4& matrix,const char* name) {
@@ -475,12 +487,12 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	char keys[256] = {0};
 	char preKeys[256] = {0};
 
-	Matrix4x4 orthographicMatrix =
-		MakeOrthographicMatrix(-160.0f, 160.0f, 200.0f, 300.0f, 0.0f, 1000.0f);
-	Matrix4x4 perspectiveFovMatrix = 
-		MakePerspectiveFovMatrix(0.63f,1.33f,0.1f,1000.0f);
-	Matrix4x4 viewportMatrix = 
-		MakeViewportMatrix(100.0f,200.0f,600.0f,300.0f,0.0f,1.0f);
+	Vector3 v1{1.2f, -3.9f, 2.5f};
+	Vector3 v2{2.8f, 0.4f, -1.3f};
+	Vector3 cross = Cross(v1, v2);
+
+	Vector3 rotate{1.0f, 1.0f, 1.0f};
+	Vector3 translate{1.0f, 1.0f, 1.0f};
 
 	// ウィンドウの×ボタンが押されるまでループ
 	while (Novice::ProcessMessage() == 0) {
@@ -490,10 +502,25 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		// キー入力を受け取る
 		memcpy(preKeys, keys, 256);
 		Novice::GetHitKeyStateAll(keys);
-
+		
 		///
 		/// ↓更新処理ここから
-	
+		
+		if (true) {
+			if (keys[DIK_W]) {
+				translate.y += 2.0f;
+			}
+			if (keys[DIK_A]) {
+				translate.x -= 2.0f;
+			}
+			if (keys[DIK_S]) {
+				translate.y -= 2.0f;
+			}
+			if (keys[DIK_D]) {
+				translate.x += 2.0f;
+			}
+			MakeRotateMatrixY()
+		}
 		
 
 		///
@@ -503,10 +530,10 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		///
 		/// ↓描画処理ここから
 		///
-		
-		MatrixScreenPrintf(0, 0, orthographicMatrix, " orthographicMatrix");
-		MatrixScreenPrintf(0, kRowHeight * 6, perspectiveFovMatrix, " perspectiveFovMatrix");
-		MatrixScreenPrintf(0, kRowHeight * 6 * 2, viewportMatrix, " viewportMatrix");
+				
+		VectorScreenPrintf(0, 0, cross, "Cross");
+
+
 		///
 		/// ↑描画処理ここまで
 		///
