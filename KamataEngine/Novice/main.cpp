@@ -514,13 +514,13 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		/// ↓更新処理ここから
 		
 		if (keys[DIK_W]) {
-				translate.y += 0.1f;
+				translate.z += 0.3f;
 		}
 		if (keys[DIK_A]) {
 				translate.x -= 0.1f;
 		}
 		if (keys[DIK_S]) {
-				translate.y -= 0.1f;
+				translate.z -= 0.3f;
 		}
 		if (keys[DIK_D]) {
 				translate.x += 0.1f;
