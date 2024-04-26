@@ -422,6 +422,31 @@ Matrix4x4 MakeOrthographicMatrix(float left, float top, float right, float botto
 	return result;
 
 };
+
+//--------------------- Gridを表示するコード --------------------------------//
+void DrawGrid(const Matrix4x4& viewProjectionMatrix, const Matrix4x4& viewPortMatrix){
+	const float kGridHalfWidth = 2.0f;											   // Grid半分の幅
+	const uint32_t kSubdivision = 10;											   // 分割数
+	const float kGridEvery = (kGridHalfWidth * 2.0f) / float(kSubdivision);		   // 1つ分の長さ
+	// 奥から手間への線を順々に引いていく	
+	for (uint32_t xIndex = 0; xIndex <= kSubdivision; ++xIndex) {
+	// 上の情報を使ってワールド座標系上の始点と終点を求める
+		const float kGridStrat = kGridEvery;
+		const float kGridEnd = kGridEvery * float(kSubdivision);
+	// スクリーン座標系まで変換をかける
+		
+
+
+
+
+	}
+
+
+};
+
+
+
+
 // 3. ビューポート変換行列
 Matrix4x4 MakeViewportMatrix(float left, float top, float width, float height, float minDepth, float maxDepth){
 	Matrix4x4 result;
@@ -458,6 +483,7 @@ void MatrixScreenPrintf(int x, int y, const Matrix4x4& matrix,const char* name) 
 		}
 	}
 }
+
 void VectorScreenPrintf(int x, int y, const Vector3& vector, const char* label) {
 	Novice::ScreenPrintf(x, y, "%.02f", vector.x);
 	Novice::ScreenPrintf(x + kColumnWidth, y, "%.02f", vector.y);
@@ -482,6 +508,9 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	Matrix4x4 viewportMatrix = 
 		MakeViewportMatrix(100.0f,200.0f,600.0f,300.0f,0.0f,1.0f);
 
+	Vector3 cameraTranslate{0.0f, 1.9f, -6.49f};
+	Vector3 cameraRotate{0.25f, 0.0f, 0.0f};
+
 	// ウィンドウの×ボタンが押されるまでループ
 	while (Novice::ProcessMessage() == 0) {
 		// フレームの開始
@@ -504,9 +533,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		/// ↓描画処理ここから
 		///
 		
-		MatrixScreenPrintf(0, 0, orthographicMatrix, " orthographicMatrix");
-		MatrixScreenPrintf(0, kRowHeight * 6, perspectiveFovMatrix, " perspectiveFovMatrix");
-		MatrixScreenPrintf(0, kRowHeight * 6 * 2, viewportMatrix, " viewportMatrix");
+
 		///
 		/// ↑描画処理ここまで
 		///
