@@ -2,7 +2,7 @@
 #include <Novice.h>
 #include <assert.h>
 #include <cmath>
-#include <d3d12.h>
+#include <imgui.h>
 const char kWindowTitle[] = "LE2B_14_タケウチ_イオリ";
 
 struct Matrix4x4 {
@@ -439,6 +439,30 @@ Matrix4x4 MakeOrthographicMatrix(float left, float top, float right, float botto
 	return result;
 };
 
+//--------------------- Gridを表示するコード --------------------------------//
+void DrawGrid(const Matrix4x4& viewProjectionMatrix, const Matrix4x4& viewPortMatrix){
+	const float kGridHalfWidth = 2.0f;											   // Grid半分の幅
+	const uint32_t kSubdivision = 10;											   // 分割数
+	const float kGridEvery = (kGridHalfWidth * 2.0f) / float(kSubdivision);		   // 1つ分の長さ
+	// 奥から手間への線を順々に引いていく	
+	for (uint32_t xIndex = 0; xIndex <= kSubdivision; ++xIndex) {
+		// 上の情報を使ってワールド座標系上の始点と終点を求める
+		float x = -kGridHalfWidth + xIndex * kGridEvery;
+		Vector3 Start = {x, -kGridHalfWidth, 0};
+		Vector3 End = {x, kGridHalfWidth, 0};
+		// スクリーン座標系まで変換をかける
+		
+
+
+
+
+	}
+
+
+};
+
+
+
 
 // 3. ビューポート変換行列
 Matrix4x4 MakeViewportMatrix(float left, float top, float width, float height, float minDepth, float maxDepth) {
@@ -495,22 +519,6 @@ void VectorScreenPrintf(int x, int y, const Vector3& vector, const char* label) 
 	Novice::ScreenPrintf(x + kColumnWidth * 3, y, "%s", label);
 }
 
-
-// ポリゴンの法線ベクトルを計算する関数
-Vector3 calculateNormal(const Vector3& v1, const Vector3& v2, const Vector3& v3) {
-	Vector3 edge1 = {v2.x - v1.x, v2.y - v1.y, v2.z - v1.z};
-	Vector3 edge2 = {v3.x - v1.x, v3.y - v1.y, v3.z - v1.z};
-	Vector3 normal = {edge1.y * edge2.z - edge1.z * edge2.y, edge1.z * edge2.x - edge1.x * edge2.z, edge1.x * edge2.y - edge1.y * edge2.x};
-	return normal;
-}
-
-// ポリゴンがカメラに見えるかどうかを判定する関数
-bool isVisible(const Vector3& normal,const Vector3& cameraPosition) {
-	Vector3 toCamera = {cameraPosition.x, cameraPosition.y, cameraPosition.z};
-	float dotProduct = normal.x * toCamera.x + normal.y * toCamera.y + normal.z * toCamera.z;
-	return dotProduct > 0.0f;
-}
-
 // Windowsアプリでのエントリーポイント(main関数)
 int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
@@ -521,20 +529,6 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	char keys[256] = {0};
 	char preKeys[256] = {0};
 
-	float kWindowWidth = 1280.0f;
-	float kWindowHight = 720.0f;
-	Vector3 v1{1.2f, -3.9f, 2.5f};
-	Vector3 v2{2.8f, 0.4f, -1.3f};
-	Vector3 cross = Cross(v1, v2);
-
-	Vector3 rotate{};
-	Vector3 translate{};
-	Vector3 cameraPosition{0.0f, 0.0f, -10.0f};
-	Vector3 kLocalVertices[3] = {
-	    {0,  1,  0},
-	    {-1, -1, 0},
-	    {1,  -1, 0},
-	};
 
 	// ウィンドウの×ボタンが押されるまでループ
 	while (Novice::ProcessMessage() == 0) {
@@ -548,36 +542,6 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		///
 		/// ↓更新処理ここから
 
-		if (keys[DIK_W]) {
-			translate.z += 0.3f;
-		}
-		if (keys[DIK_A]) {
-			translate.x -= 0.1f;
-		}
-		if (keys[DIK_S]) {
-			translate.z -= 0.3f;
-		}
-		if (keys[DIK_D]) {
-			translate.x += 0.1f;
-		}
-
-		rotate.y += 0.02f;
-
-		// 各種7行列の計算
-		Matrix4x4 worldMatrix = MakeAffineMatrix({1.0f, 1.0f, 1.0f}, rotate, translate);
-		Matrix4x4 cameraMatrix = MakeAffineMatrix({1.0f, 1.0f, 1.0f}, {0.0f, 0.0f, 0.0f}, cameraPosition);
-		Matrix4x4 viewMatrix = Inverse(cameraMatrix);
-		Matrix4x4 projectionMatrix = MakePerspectiveFovMatrix(0.45f, kWindowWidth / kWindowHight, 0.1f, 100.0f);
-		Matrix4x4 worldViewProjectionMatrix = Multiply(worldMatrix, Multiply(viewMatrix, projectionMatrix));
-		Matrix4x4 viewportMatrix = MakeViewportMatrix(0, 0, kWindowWidth, kWindowHight, 0.0f, 1.0f);
-		Vector3 screenVertices[3];
-
-		for (uint32_t i = 0; i < 3; ++i) {
-			Vector3 ndcVertex = Transform(kLocalVertices[i], worldViewProjectionMatrix);
-			screenVertices[i] = Transform(ndcVertex, viewportMatrix);
-		}
-
-		Vector3 norMal = calculateNormal(screenVertices[0], screenVertices[1], screenVertices[2]);
 
 		///
 		/// ↑更新処理ここまで
@@ -587,16 +551,6 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		/// ↓描画処理ここから
 		///
 
-		if (isVisible(norMal, cameraPosition)) {
-
-			Novice::DrawTriangle(
-			    int(screenVertices[0].x), int(screenVertices[0].y), int(screenVertices[1].x), int(screenVertices[1].y), int(screenVertices[2].x), int(screenVertices[2].y), RED, kFillModeSolid);
-		};
-		VectorScreenPrintf(0, 0, cross, "Cross");
-
-		Novice::ScreenPrintf(0, 100, "%f", screenVertices[0].y);
-		Novice::ScreenPrintf(0, 115, "%f", screenVertices[1].y);
-		Novice::ScreenPrintf(0, 130, "%f", screenVertices[2].y);
 
 		///
 		/// ↑描画処理ここまで
