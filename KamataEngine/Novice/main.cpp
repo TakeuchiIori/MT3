@@ -439,29 +439,6 @@ Matrix4x4 MakeOrthographicMatrix(float left, float top, float right, float botto
 	return result;
 };
 
-//--------------------- Gridを表示するコード --------------------------------//
-void DrawGrid(const Matrix4x4& viewProjectionMatrix, const Matrix4x4& viewPortMatrix){
-	const float kGridHalfWidth = 2.0f;											   // Grid半分の幅
-	const uint32_t kSubdivision = 10;											   // 分割数
-	const float kGridEvery = (kGridHalfWidth * 2.0f) / float(kSubdivision);		   // 1つ分の長さ
-	// 奥から手間への線を順々に引いていく	
-	for (uint32_t xIndex = 0; xIndex <= kSubdivision; ++xIndex) {
-	// 上の情報を使ってワールド座標系上の始点と終点を求める
-		const float kGridStrat = kGridEvery;
-		const float kGridEnd = kGridEvery * float(kSubdivision);
-	// スクリーン座標系まで変換をかける
-		
-
-
-
-
-	}
-
-
-};
-
-
-
 
 // 3. ビューポート変換行列
 Matrix4x4 MakeViewportMatrix(float left, float top, float width, float height, float minDepth, float maxDepth) {
@@ -543,6 +520,21 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	// キー入力結果を受け取る箱
 	char keys[256] = {0};
 	char preKeys[256] = {0};
+
+	float kWindowWidth = 1280.0f;
+	float kWindowHight = 720.0f;
+	Vector3 v1{1.2f, -3.9f, 2.5f};
+	Vector3 v2{2.8f, 0.4f, -1.3f};
+	Vector3 cross = Cross(v1, v2);
+
+	Vector3 rotate{};
+	Vector3 translate{};
+	Vector3 cameraPosition{0.0f, 0.0f, -10.0f};
+	Vector3 kLocalVertices[3] = {
+	    {0,  1,  0},
+	    {-1, -1, 0},
+	    {1,  -1, 0},
+	};
 
 	// ウィンドウの×ボタンが押されるまでループ
 	while (Novice::ProcessMessage() == 0) {
