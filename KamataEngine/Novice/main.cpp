@@ -2,6 +2,7 @@
 #include <Novice.h>
 #include <assert.h>
 #include <cmath>
+#include <imgui.h>
 const char kWindowTitle[] = "LE2B_14_タケウチ_イオリ";
 
 struct Matrix4x4 {
@@ -445,10 +446,11 @@ void DrawGrid(const Matrix4x4& viewProjectionMatrix, const Matrix4x4& viewPortMa
 	const float kGridEvery = (kGridHalfWidth * 2.0f) / float(kSubdivision);		   // 1つ分の長さ
 	// 奥から手間への線を順々に引いていく	
 	for (uint32_t xIndex = 0; xIndex <= kSubdivision; ++xIndex) {
-	// 上の情報を使ってワールド座標系上の始点と終点を求める
-		const float kGridStrat = kGridEvery;
-		const float kGridEnd = kGridEvery * float(kSubdivision);
-	// スクリーン座標系まで変換をかける
+		// 上の情報を使ってワールド座標系上の始点と終点を求める
+		float x = -kGridHalfWidth + xIndex * kGridEvery;
+		Vector3 Start = {x, -kGridHalfWidth, 0};
+		Vector3 End = {x, kGridHalfWidth, 0};
+		// スクリーン座標系まで変換をかける
 		
 
 
@@ -527,6 +529,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	char keys[256] = {0};
 	char preKeys[256] = {0};
 
+
 	// ウィンドウの×ボタンが押されるまでループ
 	while (Novice::ProcessMessage() == 0) {
 		// フレームの開始
@@ -539,34 +542,6 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		///
 		/// ↓更新処理ここから
 
-		if (keys[DIK_W]) {
-			translate.z += 0.3f;
-		}
-		if (keys[DIK_A]) {
-			translate.x -= 0.1f;
-		}
-		if (keys[DIK_S]) {
-			translate.z -= 0.3f;
-		}
-		if (keys[DIK_D]) {
-			translate.x += 0.1f;
-		}
-
-		rotate.y += 0.01f;
-
-		// 各種7行列の計算
-		Matrix4x4 worldMatrix = MakeAffineMatrix({1.0f, 1.0f, 1.0f}, rotate, translate);
-		Matrix4x4 cameraMatrix = MakeAffineMatrix({1.0f, 1.0f, 1.0f}, {0.0f, 0.0f, 0.0f}, cameraPosition);
-		Matrix4x4 viewMatrix = Inverse(cameraMatrix);
-		Matrix4x4 projectionMatrix = MakePerspectiveFovMatrix(0.45f, kWindowWidth / kWindowHight, 0.1f, 100.0f);
-		Matrix4x4 worldViewProjectionMatrix = Multiply(worldMatrix, Multiply(viewMatrix, projectionMatrix));
-		Matrix4x4 viewportMatrix = MakeViewportMatrix(0, 0, kWindowWidth, kWindowHight, 0.0f, 1.0f);
-		Vector3 screenVertices[3];
-
-		for (uint32_t i = 0; i < 3; ++i) {
-			Vector3 ndcVertex = Transform(kLocalVertices[i], worldViewProjectionMatrix);
-			screenVertices[i] = Transform(ndcVertex, viewportMatrix);
-		}
 
 		///
 		/// ↑更新処理ここまで
