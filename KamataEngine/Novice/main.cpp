@@ -2,6 +2,7 @@
 #include <Novice.h>
 #include <assert.h>
 #include <cmath>
+#include <d3d12.h>
 const char kWindowTitle[] = "LE2B_14_タケウチ_イオリ";
 
 struct Matrix4x4 {
@@ -517,6 +518,22 @@ void VectorScreenPrintf(int x, int y, const Vector3& vector, const char* label) 
 	Novice::ScreenPrintf(x + kColumnWidth * 3, y, "%s", label);
 }
 
+
+// ポリゴンの法線ベクトルを計算する関数
+Vector3 calculateNormal(const Vector3& v1, const Vector3& v2, const Vector3& v3) {
+	Vector3 edge1 = {v2.x - v1.x, v2.y - v1.y, v2.z - v1.z};
+	Vector3 edge2 = {v3.x - v1.x, v3.y - v1.y, v3.z - v1.z};
+	Vector3 normal = {edge1.y * edge2.z - edge1.z * edge2.y, edge1.z * edge2.x - edge1.x * edge2.z, edge1.x * edge2.y - edge1.y * edge2.x};
+	return normal;
+}
+
+// ポリゴンがカメラに見えるかどうかを判定する関数
+bool isVisible(const Vector3& normal,const Vector3& cameraPosition) {
+	Vector3 toCamera = {cameraPosition.x, cameraPosition.y, cameraPosition.z};
+	float dotProduct = normal.x * toCamera.x + normal.y * toCamera.y + normal.z * toCamera.z;
+	return dotProduct > 0.0f;
+}
+
 // Windowsアプリでのエントリーポイント(main関数)
 int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
@@ -552,7 +569,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 			translate.x += 0.1f;
 		}
 
-		rotate.y += 0.01f;
+		rotate.y += 0.02f;
 
 		// 各種7行列の計算
 		Matrix4x4 worldMatrix = MakeAffineMatrix({1.0f, 1.0f, 1.0f}, rotate, translate);
@@ -568,6 +585,8 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 			screenVertices[i] = Transform(ndcVertex, viewportMatrix);
 		}
 
+		Vector3 norMal = calculateNormal(screenVertices[0], screenVertices[1], screenVertices[2]);
+
 		///
 		/// ↑更新処理ここまで
 		///
@@ -576,6 +595,16 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		/// ↓描画処理ここから
 		///
 
+		if (isVisible(norMal, cameraPosition)) {
+
+			Novice::DrawTriangle(
+			    int(screenVertices[0].x), int(screenVertices[0].y), int(screenVertices[1].x), int(screenVertices[1].y), int(screenVertices[2].x), int(screenVertices[2].y), RED, kFillModeSolid);
+		};
+		VectorScreenPrintf(0, 0, cross, "Cross");
+
+		Novice::ScreenPrintf(0, 100, "%f", screenVertices[0].y);
+		Novice::ScreenPrintf(0, 115, "%f", screenVertices[1].y);
+		Novice::ScreenPrintf(0, 130, "%f", screenVertices[2].y);
 
 		///
 		/// ↑描画処理ここまで
