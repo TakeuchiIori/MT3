@@ -506,7 +506,7 @@ void DrawSphere(const Sphere& sphere, const Matrix4x4& viewProjectionMatrix, con
 		float lat = -float(M_PI) / 2.0f + kLatEvery * latIndex; // 現在の緯度
 		// 経度の方向に分割 0 ～ 2π
 		for (uint32_t lonIndex = 0; lonIndex < kSubdivision; ++lonIndex) {
-			float lon = lonIndex * kLonEvery; // 現在の経度
+			float lon = lonIndex * kLonEvery;					// 現在の経度
 			// 現在の点を求める
 			float x1 = sphere.center.x + sphere.radius * std::cosf(lat) * std::cosf(lon);
 			float y1 = sphere.center.y + sphere.radius * std::sinf(lat);
