@@ -4,15 +4,22 @@
 #include <cmath>
 #include <imgui.h>
 #include <math.h>
+#include <iostream>
+#include <vector>
 #include<cmath>
 #include <corecrt_math_defines.h>
 #include "Vector3.h"
+using namespace std;
 struct Matrix4x4 {
 	float m[4][4];
 };
 struct Sphere {
 	Vector3 center; // !< 中心点
 	float radius;   // !< 半径
+};
+struct Segment {
+	Vector3 origin;
+	Vector3 diff;
 };
 
 // Vector3 : 加算
@@ -21,6 +28,14 @@ Vector3 Add(const Vector3& v1, const Vector3& v2) {
 	result.x = v1.x + v2.x;
 	result.y = v1.y + v2.y;
 	result.z = v1.z + v2.z;
+	return result;
+}
+// Vector3 : 減算
+Vector3 Subtract(const Vector3& v1, const Vector3& v2) {
+	Vector3 result;
+	result.x = v1.x - v2.x;
+	result.y = v1.y - v2.y;
+	result.z = v1.z - v2.z;
 	return result;
 }
 
@@ -572,6 +587,55 @@ Vector3 Cross(const Vector3& v1, const Vector3& v2) {
 
 	return result;
 }
+
+// ベクトルの内積を計算する関数
+float dotProduct(const Vector3& a, const Vector3& b) { 
+	return a.x * b.x + a.y * b.y + a.z * b.z;
+}
+// ベクトルの大きさの2乗を計算する関数
+float magnitudeSquared(const Vector3& v) { 
+	return v.x * v.x + v.y * v.y + v.z * v.z;
+}
+// ベクトルの引き算を行う関数
+Vector3 subtract(const Vector3& a, const Vector3& b) { 
+	return {a.x - b.x, a.y - b.y, a.z - b.z}; 
+}
+// ベクトルの掛け算を行う関数
+Vector3 multiply(const Vector3& v, float scalar) {
+	return {v.x * scalar, v.y * scalar, v.z * scalar};
+}
+// ベクトルの大きさを計算する関数
+float magnitude(const Vector3& v) { 
+	return std::sqrt(magnitudeSquared(v)); 
+}
+// ベクトルの正規化を行う関数
+Vector3 normalize(const Vector3& v) {
+	float mag = magnitude(v);
+	return {v.x / mag, v.y / mag, v.z / mag};
+}
+// ベクトル間の距離を計算する関数
+float distance(const Vector3& a, const Vector3& b) {
+	float dx = b.x - a.x;
+	float dy = b.y - a.y;
+	float dz = b.z - a.z;
+	return std::sqrt(dx * dx + dy * dy + dz * dz);
+}
+//------------- 3次元ベクトル a をベクトル b に正射影する関数 -------------//
+Vector3 Project(const Vector3& v1, const Vector3& v2) {
+	float dot = dotProduct(v1, v2);
+	float magSquared = magnitudeSquared(v2);
+	float scalar = dot / magSquared;
+	return {v2.x * scalar, v2.y * scalar, v2.z * scalar};
+}
+//--------------------- 最近接点を計算する関数 ---------------------//
+	Vector3 ClosestPoint(const Vector3& point, const Segment& segment) {
+		Vector3 pointOnLine = segment.origin; // 直線上の任意の点はセグメントの始点と同じと仮定
+		float dot = dotProduct(segment.diff, subtract(point, pointOnLine));
+		float magSquared = magnitudeSquared(segment.diff);
+		float t = dot / magSquared;
+		return {pointOnLine.x + segment.diff.x * t, pointOnLine.y + segment.diff.y * t, pointOnLine.z + segment.diff.z * t};
+	}
+
 
 static const int kRowHeight = 20;
 static const int kColumnWidth = 60;
