@@ -471,7 +471,7 @@ Matrix4x4 MakeOrthographicMatrix(float left, float top, float right, float botto
 
 //--------------------- Gridを表示するコード ---------------------//
 void DrawGrid(const Matrix4x4& viewProjectionMatrix, const Matrix4x4& viewportMatrix) {
-	const float kGridHalfWidth = 2.0f;                                      // グリッドの半分の幅
+	const float kGridHalfWidth = 3.0f;                                      // グリッドの半分の幅
 	const uint32_t kSubdivision = 10;                                       // 分割数
 	const float kGridEvery = (kGridHalfWidth * 2.0f) / float(kSubdivision); // 1つの長さ
 
