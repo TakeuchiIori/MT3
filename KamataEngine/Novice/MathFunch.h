@@ -628,16 +628,25 @@ Vector3 Project(const Vector3& v1, const Vector3& v2) {
 	return {v2.x * scalar, v2.y * scalar, v2.z * scalar};
 }
 //--------------------- 最近接点を計算する関数 ---------------------//
-	Vector3 ClosestPoint(const Vector3& point, const Segment& segment) {
-		Vector3 pointOnLine = segment.origin; // 直線上の任意の点はセグメントの始点と同じと仮定
-		float dot = dotProduct(segment.diff, subtract(point, pointOnLine));
-		float magSquared = magnitudeSquared(segment.diff);
-		float t = dot / magSquared;
-		return {pointOnLine.x + segment.diff.x * t, pointOnLine.y + segment.diff.y * t, pointOnLine.z + segment.diff.z * t};
-	}
+Vector3 ClosestPoint(const Vector3& point, const Segment& segment) {
+	Vector3 pointOnLine = segment.origin; // 直線上の任意の点はセグメントの始点と同じと仮定
+	float dot = dotProduct(segment.diff, subtract(point, pointOnLine));
+	float magSquared = magnitudeSquared(segment.diff);
+	float t = dot / magSquared;
+	return {pointOnLine.x + segment.diff.x * t, pointOnLine.y + segment.diff.y * t, pointOnLine.z + segment.diff.z * t};
+}
 
-
-static const int kRowHeight = 20;
+bool IsColision(const Sphere& s1, const Sphere& s2) {
+	// 2つの円の中心間の距離を計算
+	float distance = std::sqrt(std::pow(s2.center.x - s1.center.x, 2) + std::pow(s2.center.y - s1.center.y, 2) + std::pow(s2.center.z - s1.center.z, 2));
+	// 中心間の距離が2つの円の半径の合計よりも小さい場合、衝突しているとみなす
+	if (distance <= (s1.radius + s2.radius)) {
+	    return true;
+	} else {
+		return false;
+		}
+ }
+    static const int kRowHeight = 20;
 static const int kColumnWidth = 60;
 
 void MatrixScreenPrintf(int x, int y, const Matrix4x4& matrix, const char* name) {
