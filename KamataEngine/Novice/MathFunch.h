@@ -636,17 +636,17 @@ Vector3 ClosestPoint(const Vector3& point, const Segment& segment) {
 	return {pointOnLine.x + segment.diff.x * t, pointOnLine.y + segment.diff.y * t, pointOnLine.z + segment.diff.z * t};
 }
 
-bool IsColision(const Sphere& s1, const Sphere& s2) {
+bool IsCollision(const Sphere& s1, const Sphere& s2) {
 	// 2つの円の中心間の距離を計算
-	float distance = std::sqrt(std::pow(s2.center.x - s1.center.x, 2) + std::pow(s2.center.y - s1.center.y, 2) + std::pow(s2.center.z - s1.center.z, 2));
+	float distance = float(std::sqrt(std::pow(s2.center.x - s1.center.x, 2) + std::pow(s2.center.y - s1.center.y, 2) + std::pow(s2.center.z - s1.center.z, 2)));
 	// 中心間の距離が2つの円の半径の合計よりも小さい場合、衝突しているとみなす
 	if (distance <= (s1.radius + s2.radius)) {
-	    return true;
+		return true;
 	} else {
 		return false;
-		}
- }
-    static const int kRowHeight = 20;
+	}
+}
+static const int kRowHeight = 20;
 static const int kColumnWidth = 60;
 
 void MatrixScreenPrintf(int x, int y, const Matrix4x4& matrix, const char* name) {
