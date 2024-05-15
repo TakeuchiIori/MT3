@@ -23,9 +23,14 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	Vector3 cameraTranslate{0.0f, 1.9f, -6.49f};
 	Vector3 cameraRotate{0.26f, 0.0f, 0.0f};
 	Vector3 cameraPosition{0.0f, 1.0f, -4.0f};
-	/*Sphere sphere;
+	Sphere sphere;
 	sphere.center = {0.0f, 0.0f, 0.0f};
-	sphere.radius = 1.0f;*/
+	sphere.radius = 1.0f;
+
+	Sphere sphere2;
+	sphere2.center = {2.0f, 0.0f, 2.0f};
+	sphere2.radius = 0.5f;
+
 	// ウィンドウの×ボタンが押されるまでループ
 	while (Novice::ProcessMessage() == 0) {
 		// フレームの開始
@@ -58,22 +63,22 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		ImGui::DragFloat3("CameraTranslate", &cameraTranslate.x, 0.01f);
 		ImGui::DragFloat3("CameraRotate", &cameraRotate.x, 0.01f);
 		ImGui::InputFloat3("Project", &project.x, "%.3f", ImGuiInputTextFlags_ReadOnly);
+		ImGui::DragFloat3("sphere",&sphere.center.x, 0.01f);
 		/*ImGui::DragFloat3("SphereCenter", &sphere.center.x, 0.01f);
 		ImGui::DragFloat("SphereRadius", &sphere.radius, 0.01f);*/
 		ImGui::End();
 
-		Sphere pointSphere{point, 0.01f};// 1cmの4球を描画
-		Sphere closestPointSphere{closestPoint, 0.01f};
 		// 線分の両端をスクリーン座標系まで変換
 		Vector3 start = Transform(Transform(segment.origin, ViewProjectionMatrix), ViewportMatrix);
 		Vector3 end = Transform(Transform(Add(segment.origin, segment.diff), ViewProjectionMatrix), ViewportMatrix);
-		// 線を描画
-		Novice::DrawLine((int)start.x, (int)start.y, (int)end.x, (int)end.y, WHITE);
-
 		DrawGrid(ViewProjectionMatrix, ViewportMatrix);
-		DrawSphere(pointSphere, ViewProjectionMatrix, ViewportMatrix, RED);
-		DrawSphere(closestPointSphere, ViewProjectionMatrix, ViewportMatrix, BLACK);
-
+		// 円の描画
+		if (IsCollision(sphere, sphere2)) {
+			DrawSphere(sphere, ViewProjectionMatrix, ViewportMatrix, RED);
+		} else {
+			DrawSphere(sphere, ViewProjectionMatrix, ViewportMatrix, WHITE);
+		}
+		DrawSphere(sphere2, ViewProjectionMatrix, ViewportMatrix, WHITE);
 
 		///
 		/// ↑描画処理ここまで
