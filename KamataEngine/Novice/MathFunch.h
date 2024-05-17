@@ -17,6 +17,10 @@ struct Sphere {
 	Vector3 center; // !< 中心点
 	float radius;   // !< 半径
 };
+struct Plane {
+	Vector3 normal; // !<法線
+	float distance; // !<距離
+};
 struct Segment {
 	Vector3 origin;
 	Vector3 diff;
@@ -38,7 +42,38 @@ Vector3 Subtract(const Vector3& v1, const Vector3& v2) {
 	result.z = v1.z - v2.z;
 	return result;
 }
+// クロス積
+Vector3 Cross(const Vector3& v1, const Vector3& v2) {
+	Vector3 result;
+	result.x = (v1.y * v2.z) - (v1.z * v2.y);
+	result.y = (v1.z * v2.x) - (v1.x * v2.z);
+	result.z = (v1.x * v2.y) - (v1.y * v2.x);
 
+	return result;
+}
+
+// ベクトルの内積を計算する関数
+float dotProduct(const Vector3& a, const Vector3& b) { return a.x * b.x + a.y * b.y + a.z * b.z; }
+// ベクトルの大きさの2乗を計算する関数
+float magnitudeSquared(const Vector3& v) { return v.x * v.x + v.y * v.y + v.z * v.z; }
+// ベクトルの引き算を行う関数
+Vector3 subtract(const Vector3& a, const Vector3& b) { return {a.x - b.x, a.y - b.y, a.z - b.z}; }
+// ベクトルの掛け算を行う関数
+Vector3 multiply(const Vector3& v, float scalar) { return {v.x * scalar, v.y * scalar, v.z * scalar}; }
+// ベクトルの大きさを計算する関数
+float magnitude(const Vector3& v) { return std::sqrt(magnitudeSquared(v)); }
+// ベクトルの正規化を行う関数
+Vector3 normalize(const Vector3& v) {
+	float mag = magnitude(v);
+	return {v.x / mag, v.y / mag, v.z / mag};
+}
+// ベクトル間の距離を計算する関数
+float distance(const Vector3& a, const Vector3& b) {
+	float dx = b.x - a.x;
+	float dy = b.y - a.y;
+	float dz = b.z - a.z;
+	return std::sqrt(dx * dx + dy * dy + dz * dz);
+}
 //==================================== 1. 行列の加法 ==============================================
 Matrix4x4 Add(Matrix4x4 matrix1, Matrix4x4 matrix2) {
 	Matrix4x4 result;
@@ -551,6 +586,34 @@ void DrawSphere(const Sphere& sphere, const Matrix4x4& viewProjectionMatrix, con
 		}
 	}
 }
+//--------------------- 平面の描画 ---------------------//
+Vector3 Perpendicual(const Vector3& vector) {
+	if (vector.x != 0.0f || vector.y != 0.0f) {
+		return {-vector.y, vector.x, 0.0f};
+	}
+	return {0.0f, -vector.z, vector.y};
+}
+void DrawPlane(const Plane& plane, const Matrix4x4& viewProjectionMatrix, const Matrix4x4& viewportMatrix, uint32_t color) {
+    Vector3 center = multiply(plane.normal,plane.distance); // 1. 中心点を決める
+	Vector3 perpendiculars[4];
+	perpendiculars[0] = normalize(Perpendicual(plane.normal)); // 2. 法線と垂直なベクトルを一つ求める
+	perpendiculars[1] = {-perpendiculars[0].x, -perpendiculars[0].y, -perpendiculars[0].z}; // 3. 2の逆ベクトルを求める
+	perpendiculars[2] = Cross(plane.normal, perpendiculars[0]); // 4. 2と法線とのクロス積を求める
+	perpendiculars[3] = {-perpendiculars[2].x, -perpendiculars[2].y, -perpendiculars[2].z}; // 5. 4の逆ベクトルを求める
+	// 6. 2~5のベクトルを中心点にそれぞれ定数倍して足すと4頂点ができる
+	Vector3 points[4];
+	for (int32_t index = 0; index < 4; ++index) {
+		Vector3 extend = multiply(perpendiculars[index], 2.0f); 
+		Vector3 point = Add(center, extend);
+		points[index] = Transform(Transform(point, viewProjectionMatrix), viewportMatrix);
+	}
+	// pointsをそれぞれ結んで矩形を描画
+	Novice::DrawLine(int(points[1].x), int(points[1].y), int(points[2].x), int(points[2].y), color);
+	Novice::DrawLine(int(points[3].x), int(points[3].y), int(points[1].x), int(points[1].y), color);
+	Novice::DrawLine(int(points[2].x), int(points[2].y), int(points[0].x), int(points[0].y), color);
+	Novice::DrawLine(int(points[0].x), int(points[0].y), int(points[3].x), int(points[3].y), color);
+
+}
 
 // 3. ビューポート変換行列
 Matrix4x4 MakeViewportMatrix(float left, float top, float width, float height, float minDepth, float maxDepth) {
@@ -578,48 +641,6 @@ Matrix4x4 MakeViewportMatrix(float left, float top, float width, float height, f
 	return result;
 };
 
-// クロス積
-Vector3 Cross(const Vector3& v1, const Vector3& v2) {
-	Vector3 result;
-	result.x = (v1.y * v2.z) - (v1.z * v2.y);
-	result.y = (v1.z * v2.x) - (v1.x * v2.z);
-	result.z = (v1.x * v2.y) - (v1.y * v2.x);
-
-	return result;
-}
-
-// ベクトルの内積を計算する関数
-float dotProduct(const Vector3& a, const Vector3& b) { 
-	return a.x * b.x + a.y * b.y + a.z * b.z;
-}
-// ベクトルの大きさの2乗を計算する関数
-float magnitudeSquared(const Vector3& v) { 
-	return v.x * v.x + v.y * v.y + v.z * v.z;
-}
-// ベクトルの引き算を行う関数
-Vector3 subtract(const Vector3& a, const Vector3& b) { 
-	return {a.x - b.x, a.y - b.y, a.z - b.z}; 
-}
-// ベクトルの掛け算を行う関数
-Vector3 multiply(const Vector3& v, float scalar) {
-	return {v.x * scalar, v.y * scalar, v.z * scalar};
-}
-// ベクトルの大きさを計算する関数
-float magnitude(const Vector3& v) { 
-	return std::sqrt(magnitudeSquared(v)); 
-}
-// ベクトルの正規化を行う関数
-Vector3 normalize(const Vector3& v) {
-	float mag = magnitude(v);
-	return {v.x / mag, v.y / mag, v.z / mag};
-}
-// ベクトル間の距離を計算する関数
-float distance(const Vector3& a, const Vector3& b) {
-	float dx = b.x - a.x;
-	float dy = b.y - a.y;
-	float dz = b.z - a.z;
-	return std::sqrt(dx * dx + dy * dy + dz * dz);
-}
 //------------- 3次元ベクトル a をベクトル b に正射影する関数 -------------//
 Vector3 Project(const Vector3& v1, const Vector3& v2) {
 	float dot = dotProduct(v1, v2);
@@ -635,7 +656,7 @@ Vector3 ClosestPoint(const Vector3& point, const Segment& segment) {
 	float t = dot / magSquared;
 	return {pointOnLine.x + segment.diff.x * t, pointOnLine.y + segment.diff.y * t, pointOnLine.z + segment.diff.z * t};
 }
-
+//--------------------- 円の当たり判定 ---------------------//
 bool IsCollision(const Sphere& s1, const Sphere& s2) {
 	// 2つの円の中心間の距離を計算
 	float distance = float(std::sqrt(std::pow(s2.center.x - s1.center.x, 2) + std::pow(s2.center.y - s1.center.y, 2) + std::pow(s2.center.z - s1.center.z, 2)));
@@ -646,6 +667,19 @@ bool IsCollision(const Sphere& s1, const Sphere& s2) {
 		return false;
 	}
 }
+//--------------------- 円と平面の当たり判定 ---------------------//
+bool IsCollisionPlane(const Sphere& s1, const Plane& plane) {
+	Vector3 center = multiply(plane.normal, plane.distance);
+	// 2つの円の中心間の距離を計算
+	float distance = float(std::sqrt(std::pow(center.x - s1.center.x, 2) + std::pow(center.y - s1.center.y, 2) + std::pow(center.z - s1.center.z, 2)));
+	// 中心間の距離が2つの円の半径の合計よりも小さい場合、衝突しているとみなす
+	if (distance <= (s1.radius + plane.distance)) {
+		return true;
+	} else {
+		return false;
+	}
+}
+
 static const int kRowHeight = 20;
 static const int kColumnWidth = 60;
 
