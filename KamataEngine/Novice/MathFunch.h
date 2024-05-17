@@ -53,7 +53,7 @@ Vector3 Cross(const Vector3& v1, const Vector3& v2) {
 }
 
 // ベクトルの内積を計算する関数
-float dotProduct(const Vector3& a, const Vector3& b) { return a.x * b.x + a.y * b.y + a.z * b.z; }
+float Dot(const Vector3& a, const Vector3& b) { return a.x * b.x + a.y * b.y + a.z * b.z; }
 // ベクトルの大きさの2乗を計算する関数
 float magnitudeSquared(const Vector3& v) { return v.x * v.x + v.y * v.y + v.z * v.z; }
 // ベクトルの引き算を行う関数
@@ -643,7 +643,7 @@ Matrix4x4 MakeViewportMatrix(float left, float top, float width, float height, f
 
 //------------- 3次元ベクトル a をベクトル b に正射影する関数 -------------//
 Vector3 Project(const Vector3& v1, const Vector3& v2) {
-	float dot = dotProduct(v1, v2);
+	float dot = Dot(v1, v2);
 	float magSquared = magnitudeSquared(v2);
 	float scalar = dot / magSquared;
 	return {v2.x * scalar, v2.y * scalar, v2.z * scalar};
@@ -651,7 +651,7 @@ Vector3 Project(const Vector3& v1, const Vector3& v2) {
 //--------------------- 最近接点を計算する関数 ---------------------//
 Vector3 ClosestPoint(const Vector3& point, const Segment& segment) {
 	Vector3 pointOnLine = segment.origin; // 直線上の任意の点はセグメントの始点と同じと仮定
-	float dot = dotProduct(segment.diff, subtract(point, pointOnLine));
+	float dot = Dot(segment.diff, subtract(point, pointOnLine));
 	float magSquared = magnitudeSquared(segment.diff);
 	float t = dot / magSquared;
 	return {pointOnLine.x + segment.diff.x * t, pointOnLine.y + segment.diff.y * t, pointOnLine.z + segment.diff.z * t};
@@ -679,6 +679,26 @@ bool IsCollisionPlane(const Sphere& s1, const Plane& plane) {
 		return false;
 	}
 }
+//--------------------- 線と平面の当たり判定 ---------------------//
+bool IsCollisionLine(const Segment& line, const Plane& plane) {
+	Vector3 center = multiply(plane.normal, plane.distance);
+	// まず垂直判定を行うために、法線と線の内積を求める
+	float dot = Dot(plane.normal, line.diff);
+
+	// 垂直 = 平行なので、衝突しているはずがない
+	if (dot == 0.0f) {
+		return false;
+	}
+	// tを求める
+	float t = (plane.distance - Dot(line.origin, plane.normal)) / dot;
+	// tの値によって衝突しているか判断
+	return t >= 0 && t <= 1;
+	
+	//return true;
+}
+
+
+
 
 static const int kRowHeight = 20;
 static const int kColumnWidth = 60;
