@@ -24,10 +24,11 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		1.0f,0.0f,1.0f,
 		0.0f
 	};
-	Segment line{
-	    1.0f,1.0f,1.0f,
-		2.0f,2.0f,2.0f,
-	};
+	Segment segment{
+	    {-2.0f, -1.0f, 0.0f},
+        {3.0f,  2.0f,  2.0f}
+    };
+	Vector3 point{-1.5f, 0.6f, 0.6f};
 
 	uint32_t lineColor = WHITE;
 	// ウィンドウの×ボタンが押されるまでループ
@@ -45,7 +46,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		Matrix4x4 ProjectionMatrix = MakePerspectiveFovMatrix(0.45f, float(kWindowWidth) / float(kWindowHeight), 0.1f, 100.0f);
 		Matrix4x4 ViewProjectionMatrix = Multiply(ViewMatrix, ProjectionMatrix);
 		Matrix4x4 ViewportMatrix = MakeViewportMatrix(0, 0, float(kWindowWidth), float(kWindowHeight), 0.0f, 1.0f);
-		if (IsCollisionLine(line, plane)) {
+		if (IsCollisionLine(segment, plane)) {
 			lineColor = RED;
 		} else {
 			lineColor = WHITE;
@@ -72,8 +73,8 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		plane.normal = normalize(plane.normal);
 		ImGui::DragFloat("planedistance", &plane.distance, 0.01f);
 
-		ImGui::DragFloat3("segment origin", &line.origin.x, 0.01f);
-		ImGui::DragFloat3("segment diff", &line.diff.x, 0.01f);
+		ImGui::DragFloat3("segment origin", &segment.origin.x, 0.01f);
+		ImGui::DragFloat3("segment diff", &segment.diff.x, 0.01f);
 
 
 		ImGui::End();
@@ -84,7 +85,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		//DrawSphere(sphere, ViewProjectionMatrix, ViewportMatrix, SphreColor);
 		// 矩形の描画
 		DrawPlane(plane, ViewProjectionMatrix, ViewportMatrix,WHITE);
-		Novice::DrawLine(int(line.origin.x), int(line.origin.y), int(line.diff.x), int(line.diff.y), lineColor);
+		//Novice::DrawLine(int(line.origin.x), int(line.origin.y), int(line.diff.x), int(line.diff.y), lineColor);
 
 		///
 		/// ↑描画処理ここまで
