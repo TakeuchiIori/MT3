@@ -681,20 +681,25 @@ bool IsCollisionPlane(const Sphere& s1, const Plane& plane) {
 }
 //--------------------- 線と平面の当たり判定 ---------------------//
 bool IsCollisionLine(const Segment& line, const Plane& plane) {
-	Vector3 center = multiply(plane.normal, plane.distance);
-	// まず垂直判定を行うために、法線と線の内積を求める
+	// 平面と線分の始点からの距離を計算
 	float dot = Dot(plane.normal, line.diff);
-
-	// 垂直 = 平行なので、衝突しているはずがない
 	if (dot == 0.0f) {
+		// 平行なので衝突なし
 		return false;
 	}
-	// tを求める
+
+	// t を計算
 	float t = (plane.distance - Dot(line.origin, plane.normal)) / dot;
-	// tの値によって衝突しているか判断
-	return t >= 0 && t <= 1;
+
+	// t の値が [0, 1] の範囲内にあるかどうかで判断
+	if (t >= -1.0f && t >= 0.0f && t <= 1.0f) {
+		// 線分のどこかで交差している
+		return true;
+	} else {
+		// 線分が平面を横切っていない
+		return false;
+	}
 	
-	//return true;
 }
 
 
