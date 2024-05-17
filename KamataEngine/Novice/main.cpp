@@ -28,8 +28,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	    {-2.0f, -1.0f, 0.0f},
         {3.0f,  2.0f,  2.0f}
     };
-	Vector3 point{-1.5f, 0.6f, 0.6f};
-
+	
 	uint32_t lineColor = WHITE;
 	// ウィンドウの×ボタンが押されるまでループ
 	while (Novice::ProcessMessage() == 0) {
@@ -76,7 +75,6 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		ImGui::DragFloat3("segment origin", &segment.origin.x, 0.01f);
 		ImGui::DragFloat3("segment diff", &segment.diff.x, 0.01f);
 
-
 		ImGui::End();
 
 		// 線分の両端をスクリーン座標系まで変換
@@ -85,7 +83,11 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		//DrawSphere(sphere, ViewProjectionMatrix, ViewportMatrix, SphreColor);
 		// 矩形の描画
 		DrawPlane(plane, ViewProjectionMatrix, ViewportMatrix,WHITE);
-		//Novice::DrawLine(int(line.origin.x), int(line.origin.y), int(line.diff.x), int(line.diff.y), lineColor);
+		// 線の描画
+		Vector3 start = Transform(Transform(segment.origin, ViewProjectionMatrix), ViewportMatrix);
+		Vector3 end = Transform(Transform(Add(segment.origin, segment.diff), ViewProjectionMatrix), ViewportMatrix);
+		Novice::DrawLine((int)start.x, (int)start.y, (int)end.x, (int)end.y, WHITE);
+		
 
 		///
 		/// ↑描画処理ここまで
