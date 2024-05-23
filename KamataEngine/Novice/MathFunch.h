@@ -692,7 +692,7 @@ bool IsCollisionLine(const Segment& line, const Plane& plane) {
 	float t = (plane.distance - Dot(line.origin, plane.normal)) / dot;
 
 	// t の値が [0, 1] の範囲内にあるかどうかで判断
-	if (t >= -1.0f && t >= 0.0f && t <= 1.0f) {
+	if (t >= -1.0f && t >= 0.0f && t <= 1.0f ) {
 		// 線分のどこかで交差している
 		return true;
 	} else {

@@ -64,11 +64,8 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	//	ImGui::InputFloat3("Project", &project.x, "%.3f", ImGuiInputTextFlags_ReadOnly);
 		ImGui::DragFloat3("CameraTranslate", &cameraTranslate.x, 0.01f);
 		ImGui::DragFloat3("CameraRotate", &cameraRotate.x, 0.01f);
-		
-
 		//ImGui::DragFloat3("sphere",&sphere.center.x, 0.01f);
 		//ImGui::DragFloat("SphereRadius", &sphere.radius, 0.01f);
-
 		ImGui::DragFloat3("plane", &plane.normal.x,0.01f);
 		plane.normal = normalize(plane.normal);
 		ImGui::DragFloat("planedistance", &plane.distance, 0.01f);
