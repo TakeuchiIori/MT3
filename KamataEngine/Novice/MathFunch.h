@@ -14,6 +14,10 @@ using namespace std;
 struct Matrix4x4 {
 	float m[4][4];
 };
+struct Vector2Int {
+	int x;
+	int y;
+};
 struct Sphere {
 	Vector3 center; // !< 中心点
 	float radius;   // !< 半径
@@ -426,7 +430,35 @@ Matrix4x4 MakeRotateMatrixZ(float radian) {
 
 	return result;
 };
+// XYZ軸周りの回転行列を生成する関数
+Matrix4x4 MakeRotateMatrixXYZ(Vector3& angle) {
+	Matrix4x4 rotX = MakeRotateMatrixX(angle.x);
+	Matrix4x4 rotY = MakeRotateMatrixY(angle.y);
+	Matrix4x4 rotZ = MakeRotateMatrixZ(angle.z);
 
+	Matrix4x4 result;
+
+	// XYZ軸周りの回転行列を計算
+	for (int i = 0; i < 4; ++i) {
+		for (int j = 0; j < 4; ++j) {
+			result.m[i][j] = 0.0f;
+			for (int k = 0; k < 4; ++k) {
+				result.m[i][j] += rotX.m[i][k] * rotY.m[k][j];
+			}
+		}
+	}
+
+	for (int i = 0; i < 4; ++i) {
+		for (int j = 0; j < 4; ++j) {
+			result.m[i][j] = 0.0f;
+			for (int k = 0; k < 4; ++k) {
+				result.m[i][j] += result.m[i][k] * rotZ.m[k][j];
+			}
+		}
+	}
+
+	return result;
+}
 //=============================11. 3次元のアフィン変換行列=============================//
 Matrix4x4 MakeAffineMatrix(const Vector3& scale, const Vector3& rotate, const Vector3& translate) {
 	Matrix4x4 result;
@@ -737,7 +769,94 @@ bool isCollisionTriangle(const Segment& segment, const Triangle& triangle) {
 
 	return (u >= 0 && v >= 0 && u + v <= (normal.x * normal.x) + (normal.y * normal.y) + (normal.z * normal.z));
 }
+void CameraMove(Vector3& cameraRotate, Vector3& cameraTranslate, Vector2Int& clickPosition, char* keys, char* preKeys) {
+	// カーソルを動かすときの感度
+	const float mouseSensitivity = 0.003f;
+	// カメラの移動速度
+	const float moveSpeed = 0.005f;
 
+	// 各フラグ
+	static bool isLeftClicked = false;
+	static bool isWheelClicked = false;
+	static bool isDebugCamera = false;
+
+	// 回転を考慮する
+	Matrix4x4 rotationMatrix = MakeRotateMatrixXYZ(cameraRotate);
+	Vector3 X = {1.0f, 0.0f, 0.0f};
+	Vector3 Y = {0.0f, 1.0f, 0.0f};
+	Vector3 Z = {0.0f, 0.0f, -1.0f};
+
+	Vector3 rotatedX = Transform(X, rotationMatrix);
+	Vector3 rotatedY = Transform(Y, rotationMatrix);
+	Vector3 rotatedZ = Transform(Z, rotationMatrix);
+
+	if (keys[DIK_SPACE] && preKeys[DIK_SPACE] == 0) {
+		isDebugCamera = !isDebugCamera;
+	}
+
+	if (isDebugCamera) {
+
+		/// ========カメラ操作========
+		// カメラの回転を更新する
+		if (Novice::IsPressMouse(0) == 1) {
+			if (!isLeftClicked) {
+				// マウスがクリックされたときに現在のマウス位置を保存する
+				Novice::GetMousePosition(&clickPosition.x, &clickPosition.y);
+				isLeftClicked = true;
+			} else {
+				// マウスがクリックされている間はカメラの回転を更新する
+				Vector2Int currentMousePos;
+				Novice::GetMousePosition(&currentMousePos.x, &currentMousePos.y);
+
+				float deltaX = static_cast<float>(currentMousePos.x - clickPosition.x);
+				float deltaY = static_cast<float>(currentMousePos.y - clickPosition.y);
+
+				cameraRotate.x += deltaY * mouseSensitivity;
+				cameraRotate.y += deltaX * mouseSensitivity;
+
+				// 現在のマウス位置を保存する
+				clickPosition = currentMousePos;
+			}
+		} else {
+			// マウスがクリックされていない場合はフラグをリセットする
+			isLeftClicked = false;
+		}
+
+		// カメラの位置を更新する
+		if (Novice::IsPressMouse(2) == 1) {
+			if (!isWheelClicked) {
+				// マウスがクリックされたときに現在のマウス位置を保存する
+				Novice::GetMousePosition(&clickPosition.x, &clickPosition.y);
+				isWheelClicked = true;
+			} else {
+				// マウスがクリックされている間はカメラの位置を更新する
+				Vector2Int currentMousePos;
+				Novice::GetMousePosition(&currentMousePos.x, &currentMousePos.y);
+
+				float deltaX = static_cast<float>(currentMousePos.x - clickPosition.x);
+				float deltaY = static_cast<float>(currentMousePos.y - clickPosition.y);
+
+				cameraTranslate -= rotatedX * deltaX * mouseSensitivity;
+				cameraTranslate += rotatedY * deltaY * mouseSensitivity;
+
+				// 現在のマウス位置を保存する
+				clickPosition = currentMousePos;
+			}
+		} else {
+			// マウスがクリックされていない場合はフラグをリセットする
+			isWheelClicked = false;
+		}
+
+		// マウスホイールの移動量を取得する
+		int wheelDelta = -Novice::GetWheel();
+
+		// マウスホイールの移動量に応じてカメラの移動を更新する
+		cameraTranslate += rotatedZ * float(wheelDelta) * moveSpeed;
+		/// =====================
+	}
+	ImGui::Begin("camera explanation");
+	ImGui::Text("SPACE : DebugCamera on:off\nDebugCamera = %d (0 = false , 1 = true)\nPressingMouseLeftbutton : moveCameraRotate\nPressingMouseWheelbutton : moveCameraTranslate", isDebugCamera);
+	ImGui::End();
 
 static const int kRowHeight = 20;
 static const int kColumnWidth = 60;

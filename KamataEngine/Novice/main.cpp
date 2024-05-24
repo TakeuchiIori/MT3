@@ -68,6 +68,8 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		ImGui::DragFloat3("segment origin", &segment.origin.x, 0.01f);
 		ImGui::DragFloat3("segment diff", &segment.diff.x, 0.01f);
 		ImGui::DragFloat3("Triangle : v0", &triangle.vertex->x, 0.01f);
+		ImGui::DragFloat3("Triangle : v0", &triangle.vertex->x, 0.01f);
+
 		ImGui::End();
 		//--------------------- コメントアウト -----------------------//
 		// ImGui::DragFloat3("sphere",&sphere.center.x, 0.01f);
