@@ -10,6 +10,7 @@
 #include <corecrt_math_defines.h>
 #include "Vector3.h"
 #include "Vector4.h"
+
 using namespace std;
 struct Matrix4x4 {
 	float m[4][4];
@@ -432,32 +433,7 @@ Matrix4x4 MakeRotateMatrixZ(float radian) {
 };
 // XYZ軸周りの回転行列を生成する関数
 Matrix4x4 MakeRotateMatrixXYZ(Vector3& angle) {
-	Matrix4x4 rotX = MakeRotateMatrixX(angle.x);
-	Matrix4x4 rotY = MakeRotateMatrixY(angle.y);
-	Matrix4x4 rotZ = MakeRotateMatrixZ(angle.z);
-
-	Matrix4x4 result;
-
-	// XYZ軸周りの回転行列を計算
-	for (int i = 0; i < 4; ++i) {
-		for (int j = 0; j < 4; ++j) {
-			result.m[i][j] = 0.0f;
-			for (int k = 0; k < 4; ++k) {
-				result.m[i][j] += rotX.m[i][k] * rotY.m[k][j];
-			}
-		}
-	}
-
-	for (int i = 0; i < 4; ++i) {
-		for (int j = 0; j < 4; ++j) {
-			result.m[i][j] = 0.0f;
-			for (int k = 0; k < 4; ++k) {
-				result.m[i][j] += result.m[i][k] * rotZ.m[k][j];
-			}
-		}
-	}
-
-	return result;
+	return Multiply(Multiply(MakeRotateMatrixX(angle.x), MakeRotateMatrixY(angle.y)), MakeRotateMatrixZ(angle.z));
 }
 //=============================11. 3次元のアフィン変換行列=============================//
 Matrix4x4 MakeAffineMatrix(const Vector3& scale, const Vector3& rotate, const Vector3& translate) {
@@ -857,7 +833,7 @@ void CameraMove(Vector3& cameraRotate, Vector3& cameraTranslate, Vector2Int& cli
 	ImGui::Begin("camera explanation");
 	ImGui::Text("SPACE : DebugCamera on:off\nDebugCamera = %d (0 = false , 1 = true)\nPressingMouseLeftbutton : moveCameraRotate\nPressingMouseWheelbutton : moveCameraTranslate", isDebugCamera);
 	ImGui::End();
-
+}
 static const int kRowHeight = 20;
 static const int kColumnWidth = 60;
 

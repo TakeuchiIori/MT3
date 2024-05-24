@@ -34,7 +34,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	     {1.0f, 0.0f, 0.0f}}   // 頂点3の座標
  
 	};
-	
+	Vector2Int clickPosition;
 	uint32_t lineColor = WHITE;
 	uint32_t TraiangleColor = WHITE;
 	// ウィンドウの×ボタンが押されるまでループ
@@ -52,7 +52,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		Matrix4x4 ProjectionMatrix = MakePerspectiveFovMatrix(0.45f, float(kWindowWidth) / float(kWindowHeight), 0.1f, 100.0f);
 		Matrix4x4 ViewProjectionMatrix = Multiply(ViewMatrix, ProjectionMatrix);
 		Matrix4x4 ViewportMatrix = MakeViewportMatrix(0, 0, float(kWindowWidth), float(kWindowHeight), 0.0f, 1.0f);
-
+		CameraMove(cameraRotate, cameraTranslate, clickPosition, keys, preKeys);
 		///
 		/// ↑更新処理ここまで
 		///
