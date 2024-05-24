@@ -676,6 +676,7 @@ bool IsCollisionPlane(const Sphere& s1, const Plane& plane) {
 	// 距離が球の半径より小さい場合、衝突しているとみなす
 	return std::abs(distance) <= s1.radius;
 }
+
 //--------------------- 線と平面の当たり判定 ---------------------//
 bool IsCollisionLine(const Segment& line, const Plane& plane) {
 	// 平面と線分の始点からの距離を計算
