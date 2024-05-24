@@ -690,11 +690,11 @@ bool IsCollision(const Sphere& s1, const Sphere& s2) {
 }
 //--------------------- 円と平面の当たり判定 ---------------------//
 bool IsCollisionPlane(const Sphere& s1, const Plane& plane) {
-	Vector3 center = multiply(plane.normal, plane.distance);
-	// 2つの円の中心間の距離を計算
-	float distance = float(std::sqrt(std::pow(center.x - s1.center.x, 2) + std::pow(center.y - s1.center.y, 2) + std::pow(center.z - s1.center.z, 2)));
-	// 中心間の距離が2つの円の半径の合計よりも小さい場合、衝突しているとみなす
-	if (distance <= (s1.radius + plane.distance)) {
+	// 球の中心から平面までの距離を計算
+	float distance = dotProduct(plane.normal, s1.center) - plane.distance;
+
+	// 距離が球の半径より小さい場合、衝突しているとみなす
+	if (std::abs(distance) <= s1.radius) {
 		return true;
 	} else {
 		return false;
