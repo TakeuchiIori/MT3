@@ -53,6 +53,11 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		Matrix4x4 ViewProjectionMatrix = Multiply(ViewMatrix, ProjectionMatrix);
 		Matrix4x4 ViewportMatrix = MakeViewportMatrix(0, 0, float(kWindowWidth), float(kWindowHeight), 0.0f, 1.0f);
 		CameraMove(cameraRotate, cameraTranslate, clickPosition, keys, preKeys);
+		if (isCollisionTriangle(segment, triangle) == true) {
+			TraiangleColor = RED;
+		} else {
+			TraiangleColor = WHITE;
+		}
 		///
 		/// ↑更新処理ここまで
 		///
@@ -84,6 +89,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		Vector3 start = Transform(Transform(segment.origin, ViewProjectionMatrix), ViewportMatrix);
 		Vector3 end = Transform(Transform(Add(segment.origin, segment.diff), ViewProjectionMatrix), ViewportMatrix);
 		Novice::DrawLine((int)start.x, (int)start.y, (int)end.x, (int)end.y, lineColor);
+		// 三角形の描画
 		DrawTriangle(triangle, ViewProjectionMatrix, ViewportMatrix, TraiangleColor);
 		
 		

@@ -724,26 +724,43 @@ bool IsCollisionLine(const Segment& line, const Plane& plane) {
 }
 //--------------------- 線と三角形の当たり判定 ---------------------//
 bool isCollisionTriangle(const Segment& segment, const Triangle& triangle) {
+	// ベクトルの定義
 	Vector3 AB = Vector3(triangle.vertex[1].x - triangle.vertex[0].x, triangle.vertex[1].y - triangle.vertex[0].y, triangle.vertex[1].z - triangle.vertex[0].z);
 	Vector3 AC = Vector3(triangle.vertex[2].x - triangle.vertex[0].x, triangle.vertex[2].y - triangle.vertex[0].y, triangle.vertex[2].z - triangle.vertex[0].z);
 	Vector3 direction = segment.diff;
 
+	// 法線ベクトルと平面方程式
 	Vector3 normal = Cross(AB, AC);
-	float D = -((normal.x * triangle.vertex[0].x) + (normal.y * triangle.vertex[0].y) + (normal.z * triangle.vertex[0].z));
+	float D = -Dot(normal, triangle.vertex[0]);
 
-	float t = -((normal.x * segment.origin.x) + (normal.y * segment.origin.y) + (normal.z * segment.origin.z) + D) / ((normal.x * direction.x) + (normal.y * direction.y) + (normal.z * direction.z));
+	// 線分が平面と交差するtの計算
+	float numerator = -(Dot(normal, segment.origin) + D);
+	float denominator = Dot(normal, direction);
+
+	if (denominator == 0) {
+		return false; // 線分が平面と平行であるため交差しない
+	}
+
+	float t = numerator / denominator;
 	if (t < 0 || t > 1) {
 		return false; // 線分が三角形の平面と交差しない
 	}
 
-	Vector3 intersectionPoint = Vector3(segment.origin.x + direction.x * t, segment.origin.y + direction.y * t, segment.origin.z + direction.z * t);
+	// 交点の計算
+	Vector3 intersectionPoint = segment.origin + direction * t;
 
-	Vector3 C = Vector3(intersectionPoint.x - triangle.vertex[0].x, intersectionPoint.y - triangle.vertex[0].y, intersectionPoint.z - triangle.vertex[0].z);
+	// バリデーション
+	Vector3 C = intersectionPoint - triangle.vertex[0];
 
-	float u = (Cross(AB, C).x * normal.x) + (Cross(AB, C).y * normal.y) + (Cross(AB, C).z * normal.z);
-	float v = (Cross(C, AC).x * normal.x) + (Cross(C, AC).y * normal.y) + (Cross(C, AC).z * normal.z);
+	Vector3 crossAB_C = Cross(AB, C);
+	float u = Dot(crossAB_C, normal);
 
-	return (u >= 0 && v >= 0 && u + v <= (normal.x * normal.x) + (normal.y * normal.y) + (normal.z * normal.z));
+	Vector3 crossC_AC = Cross(C, AC);
+	float v = Dot(crossC_AC, normal);
+
+	float normSquared = Dot(normal, normal);
+
+	return (u >= 0 && v >= 0 && (u + v) <= normSquared);
 }
 void CameraMove(Vector3& cameraRotate, Vector3& cameraTranslate, Vector2Int& clickPosition, char* keys, char* preKeys) {
 	// カーソルを動かすときの感度
