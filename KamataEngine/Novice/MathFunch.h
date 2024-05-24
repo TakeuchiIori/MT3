@@ -9,6 +9,7 @@
 #include<cmath>
 #include <corecrt_math_defines.h>
 #include "Vector3.h"
+#include "Vector4.h"
 using namespace std;
 struct Matrix4x4 {
 	float m[4][4];
@@ -25,7 +26,9 @@ struct Segment {
 	Vector3 origin;
 	Vector3 diff;
 };
-
+struct Triangle {
+	Vector3 vertex[3];
+};
 // Vector3 : 加算
 Vector3 Add(const Vector3& v1, const Vector3& v2) {
 	Vector3 result;
@@ -44,7 +47,7 @@ Vector3 Subtract(const Vector3& v1, const Vector3& v2) {
 }
 // クロス積
 Vector3 Cross(const Vector3& v1, const Vector3& v2) {
-	Vector3 result;
+	Vector3 result{};
 	result.x = (v1.y * v2.z) - (v1.z * v2.y);
 	result.y = (v1.z * v2.x) - (v1.x * v2.z);
 	result.z = (v1.x * v2.y) - (v1.y * v2.x);
@@ -54,6 +57,8 @@ Vector3 Cross(const Vector3& v1, const Vector3& v2) {
 
 // ベクトルの内積を計算する関数
 float Dot(const Vector3& a, const Vector3& b) { return a.x * b.x + a.y * b.y + a.z * b.z; }
+// ベクトルの外積を計算する関数
+Vector3 crossProduct(const Vector3& a, const Vector3& b) { return Vector3(a.y * b.z - a.z * b.y, a.z * b.x - a.x * b.z, a.x * b.y - a.y * b.x); }
 // ベクトルの大きさの2乗を計算する関数
 float magnitudeSquared(const Vector3& v) { return v.x * v.x + v.y * v.y + v.z * v.z; }
 // ベクトルの引き算を行う関数
@@ -615,7 +620,15 @@ void DrawPlane(const Plane& plane, const Matrix4x4& viewProjectionMatrix, const 
 
 }
 
-// 3. ビューポート変換行列
+void DrawTriangle(const Triangle& triangle, const Matrix4x4& viewProjectionMatrix, const Matrix4x4& viewportMatrix, uint32_t color) {
+	Vector3 points[3];
+	for (int32_t i = 0; i < 3; i++) {
+		points[i] = Transform(Transform(triangle.vertex[i], viewProjectionMatrix), viewportMatrix);
+	}
+	Novice::DrawTriangle(int(points[0].x), int(points[0].y), int(points[1].x), int(points[1].y), int(points[2].x), int(points[2].y),color,kFillModeWireFrame);
+
+}
+    // 3. ビューポート変換行列
 Matrix4x4 MakeViewportMatrix(float left, float top, float width, float height, float minDepth, float maxDepth) {
 	Matrix4x4 result;
 	result.m[0][0] = width / 2;
@@ -701,8 +714,29 @@ bool IsCollisionLine(const Segment& line, const Plane& plane) {
 	}
 	
 }
+//--------------------- 線と三角形の当たり判定 ---------------------//
+bool isCollisionTriangle(const Segment& segment, const Triangle& triangle) {
+	Vector3 AB = Vector3(triangle.vertex[1].x - triangle.vertex[0].x, triangle.vertex[1].y - triangle.vertex[0].y, triangle.vertex[1].z - triangle.vertex[0].z);
+	Vector3 AC = Vector3(triangle.vertex[2].x - triangle.vertex[0].x, triangle.vertex[2].y - triangle.vertex[0].y, triangle.vertex[2].z - triangle.vertex[0].z);
+	Vector3 direction = segment.diff;
 
+	Vector3 normal = Cross(AB, AC);
+	float D = -((normal.x * triangle.vertex[0].x) + (normal.y * triangle.vertex[0].y) + (normal.z * triangle.vertex[0].z));
 
+	float t = -((normal.x * segment.origin.x) + (normal.y * segment.origin.y) + (normal.z * segment.origin.z) + D) / ((normal.x * direction.x) + (normal.y * direction.y) + (normal.z * direction.z));
+	if (t < 0 || t > 1) {
+		return false; // 線分が三角形の平面と交差しない
+	}
+
+	Vector3 intersectionPoint = Vector3(segment.origin.x + direction.x * t, segment.origin.y + direction.y * t, segment.origin.z + direction.z * t);
+
+	Vector3 C = Vector3(intersectionPoint.x - triangle.vertex[0].x, intersectionPoint.y - triangle.vertex[0].y, intersectionPoint.z - triangle.vertex[0].z);
+
+	float u = (Cross(AB, C).x * normal.x) + (Cross(AB, C).y * normal.y) + (Cross(AB, C).z * normal.z);
+	float v = (Cross(C, AC).x * normal.x) + (Cross(C, AC).y * normal.y) + (Cross(C, AC).z * normal.z);
+
+	return (u >= 0 && v >= 0 && u + v <= (normal.x * normal.x) + (normal.y * normal.y) + (normal.z * normal.z));
+}
 
 
 static const int kRowHeight = 20;
