@@ -9,9 +9,15 @@
 #include<cmath>
 #include <corecrt_math_defines.h>
 #include "Vector3.h"
+#include "Vector4.h"
+
 using namespace std;
 struct Matrix4x4 {
 	float m[4][4];
+};
+struct Vector2Int {
+	int x;
+	int y;
 };
 struct Sphere {
 	Vector3 center; // !< 中心点
@@ -25,7 +31,9 @@ struct Segment {
 	Vector3 origin;
 	Vector3 diff;
 };
-
+struct Triangle {
+	Vector3 vertex[3];
+};
 // Vector3 : 加算
 Vector3 Add(const Vector3& v1, const Vector3& v2) {
 	Vector3 result;
@@ -44,7 +52,7 @@ Vector3 Subtract(const Vector3& v1, const Vector3& v2) {
 }
 // クロス積
 Vector3 Cross(const Vector3& v1, const Vector3& v2) {
-	Vector3 result;
+	Vector3 result{};
 	result.x = (v1.y * v2.z) - (v1.z * v2.y);
 	result.y = (v1.z * v2.x) - (v1.x * v2.z);
 	result.z = (v1.x * v2.y) - (v1.y * v2.x);
@@ -54,6 +62,8 @@ Vector3 Cross(const Vector3& v1, const Vector3& v2) {
 
 // ベクトルの内積を計算する関数
 float Dot(const Vector3& a, const Vector3& b) { return a.x * b.x + a.y * b.y + a.z * b.z; }
+// ベクトルの外積を計算する関数
+Vector3 crossProduct(const Vector3& a, const Vector3& b) { return Vector3(a.y * b.z - a.z * b.y, a.z * b.x - a.x * b.z, a.x * b.y - a.y * b.x); }
 // ベクトルの大きさの2乗を計算する関数
 float magnitudeSquared(const Vector3& v) { return v.x * v.x + v.y * v.y + v.z * v.z; }
 // ベクトルの引き算を行う関数
@@ -421,7 +431,10 @@ Matrix4x4 MakeRotateMatrixZ(float radian) {
 
 	return result;
 };
-
+// XYZ軸周りの回転行列を生成する関数
+Matrix4x4 MakeRotateMatrixXYZ(Vector3& angle) {
+	return Multiply(Multiply(MakeRotateMatrixX(angle.x), MakeRotateMatrixY(angle.y)), MakeRotateMatrixZ(angle.z));
+}
 //=============================11. 3次元のアフィン変換行列=============================//
 Matrix4x4 MakeAffineMatrix(const Vector3& scale, const Vector3& rotate, const Vector3& translate) {
 	Matrix4x4 result;
@@ -615,7 +628,15 @@ void DrawPlane(const Plane& plane, const Matrix4x4& viewProjectionMatrix, const 
 
 }
 
-// 3. ビューポート変換行列
+void DrawTriangle(const Triangle& triangle, const Matrix4x4& viewProjectionMatrix, const Matrix4x4& viewportMatrix, uint32_t color) {
+	Vector3 points[3];
+	for (int32_t i = 0; i < 3; i++) {
+		points[i] = Transform(Transform(triangle.vertex[i], viewProjectionMatrix), viewportMatrix);
+	}
+	Novice::DrawTriangle(int(points[0].x), int(points[0].y), int(points[1].x), int(points[1].y), int(points[2].x), int(points[2].y),color,kFillModeWireFrame);
+
+}
+    // 3. ビューポート変換行列
 Matrix4x4 MakeViewportMatrix(float left, float top, float width, float height, float minDepth, float maxDepth) {
 	Matrix4x4 result;
 	result.m[0][0] = width / 2;
@@ -701,10 +722,118 @@ bool IsCollisionLine(const Segment& line, const Plane& plane) {
 	}
 	
 }
+//--------------------- 線と三角形の当たり判定 ---------------------//
+bool isCollisionTriangle(const Segment& segment, const Triangle& triangle) {
+	Vector3 AB = Vector3(triangle.vertex[1].x - triangle.vertex[0].x, triangle.vertex[1].y - triangle.vertex[0].y, triangle.vertex[1].z - triangle.vertex[0].z);
+	Vector3 AC = Vector3(triangle.vertex[2].x - triangle.vertex[0].x, triangle.vertex[2].y - triangle.vertex[0].y, triangle.vertex[2].z - triangle.vertex[0].z);
+	Vector3 direction = segment.diff;
 
+	Vector3 normal = Cross(AB, AC);
+	float D = -((normal.x * triangle.vertex[0].x) + (normal.y * triangle.vertex[0].y) + (normal.z * triangle.vertex[0].z));
 
+	float t = -((normal.x * segment.origin.x) + (normal.y * segment.origin.y) + (normal.z * segment.origin.z) + D) / ((normal.x * direction.x) + (normal.y * direction.y) + (normal.z * direction.z));
+	if (t < 0 || t > 1) {
+		return false; // 線分が三角形の平面と交差しない
+	}
 
+	Vector3 intersectionPoint = Vector3(segment.origin.x + direction.x * t, segment.origin.y + direction.y * t, segment.origin.z + direction.z * t);
 
+	Vector3 C = Vector3(intersectionPoint.x - triangle.vertex[0].x, intersectionPoint.y - triangle.vertex[0].y, intersectionPoint.z - triangle.vertex[0].z);
+
+	float u = (Cross(AB, C).x * normal.x) + (Cross(AB, C).y * normal.y) + (Cross(AB, C).z * normal.z);
+	float v = (Cross(C, AC).x * normal.x) + (Cross(C, AC).y * normal.y) + (Cross(C, AC).z * normal.z);
+
+	return (u >= 0 && v >= 0 && u + v <= (normal.x * normal.x) + (normal.y * normal.y) + (normal.z * normal.z));
+}
+void CameraMove(Vector3& cameraRotate, Vector3& cameraTranslate, Vector2Int& clickPosition, char* keys, char* preKeys) {
+	// カーソルを動かすときの感度
+	const float mouseSensitivity = 0.003f;
+	// カメラの移動速度
+	const float moveSpeed = 0.005f;
+
+	// 各フラグ
+	static bool isLeftClicked = false;
+	static bool isWheelClicked = false;
+	static bool isDebugCamera = false;
+
+	// 回転を考慮する
+	Matrix4x4 rotationMatrix = MakeRotateMatrixXYZ(cameraRotate);
+	Vector3 X = {1.0f, 0.0f, 0.0f};
+	Vector3 Y = {0.0f, 1.0f, 0.0f};
+	Vector3 Z = {0.0f, 0.0f, -1.0f};
+
+	Vector3 rotatedX = Transform(X, rotationMatrix);
+	Vector3 rotatedY = Transform(Y, rotationMatrix);
+	Vector3 rotatedZ = Transform(Z, rotationMatrix);
+
+	if (keys[DIK_SPACE] && preKeys[DIK_SPACE] == 0) {
+		isDebugCamera = !isDebugCamera;
+	}
+
+	if (isDebugCamera) {
+
+		/// ========カメラ操作========
+		// カメラの回転を更新する
+		if (Novice::IsPressMouse(0) == 1) {
+			if (!isLeftClicked) {
+				// マウスがクリックされたときに現在のマウス位置を保存する
+				Novice::GetMousePosition(&clickPosition.x, &clickPosition.y);
+				isLeftClicked = true;
+			} else {
+				// マウスがクリックされている間はカメラの回転を更新する
+				Vector2Int currentMousePos;
+				Novice::GetMousePosition(&currentMousePos.x, &currentMousePos.y);
+
+				float deltaX = static_cast<float>(currentMousePos.x - clickPosition.x);
+				float deltaY = static_cast<float>(currentMousePos.y - clickPosition.y);
+
+				cameraRotate.x += deltaY * mouseSensitivity;
+				cameraRotate.y += deltaX * mouseSensitivity;
+
+				// 現在のマウス位置を保存する
+				clickPosition = currentMousePos;
+			}
+		} else {
+			// マウスがクリックされていない場合はフラグをリセットする
+			isLeftClicked = false;
+		}
+
+		// カメラの位置を更新する
+		if (Novice::IsPressMouse(2) == 1) {
+			if (!isWheelClicked) {
+				// マウスがクリックされたときに現在のマウス位置を保存する
+				Novice::GetMousePosition(&clickPosition.x, &clickPosition.y);
+				isWheelClicked = true;
+			} else {
+				// マウスがクリックされている間はカメラの位置を更新する
+				Vector2Int currentMousePos;
+				Novice::GetMousePosition(&currentMousePos.x, &currentMousePos.y);
+
+				float deltaX = static_cast<float>(currentMousePos.x - clickPosition.x);
+				float deltaY = static_cast<float>(currentMousePos.y - clickPosition.y);
+
+				cameraTranslate -= rotatedX * deltaX * mouseSensitivity;
+				cameraTranslate += rotatedY * deltaY * mouseSensitivity;
+
+				// 現在のマウス位置を保存する
+				clickPosition = currentMousePos;
+			}
+		} else {
+			// マウスがクリックされていない場合はフラグをリセットする
+			isWheelClicked = false;
+		}
+
+		// マウスホイールの移動量を取得する
+		int wheelDelta = -Novice::GetWheel();
+
+		// マウスホイールの移動量に応じてカメラの移動を更新する
+		cameraTranslate += rotatedZ * float(wheelDelta) * moveSpeed;
+		/// =====================
+	}
+	ImGui::Begin("camera explanation");
+	ImGui::Text("SPACE : DebugCamera on:off\nDebugCamera = %d (0 = false , 1 = true)\nPressingMouseLeftbutton : moveCameraRotate\nPressingMouseWheelbutton : moveCameraTranslate", isDebugCamera);
+	ImGui::End();
+}
 static const int kRowHeight = 20;
 static const int kColumnWidth = 60;
 

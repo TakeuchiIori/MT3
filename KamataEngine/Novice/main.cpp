@@ -20,16 +20,23 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	//sphere.center = {0.0f, 0.0f, 0.0f};
 	//sphere.radius = 1.0f;
 
-	Plane plane{
-		1.0f,0.0f,1.0f,
-		0.0f
-	};
+	//Plane plane{
+	//	1.0f,0.0f,1.0f,
+	//	0.0f
+	//};
 	Segment segment{
 	    {-2.0f, -1.0f, 0.0f},
         {3.0f,  2.0f,  2.0f}
     };
-	
+	Triangle triangle{
+	    {{-1.0f, 0.0f, 0.0f}, // 頂点1の座標
+	     {0.0f, 1.0f, 0.0f},  // 頂点2の座標
+	     {1.0f, 0.0f, 0.0f}}   // 頂点3の座標
+ 
+	};
+	Vector2Int clickPosition;
 	uint32_t lineColor = WHITE;
+	uint32_t TraiangleColor = WHITE;
 	// ウィンドウの×ボタンが押されるまでループ
 	while (Novice::ProcessMessage() == 0) {
 		// フレームの開始
@@ -45,12 +52,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		Matrix4x4 ProjectionMatrix = MakePerspectiveFovMatrix(0.45f, float(kWindowWidth) / float(kWindowHeight), 0.1f, 100.0f);
 		Matrix4x4 ViewProjectionMatrix = Multiply(ViewMatrix, ProjectionMatrix);
 		Matrix4x4 ViewportMatrix = MakeViewportMatrix(0, 0, float(kWindowWidth), float(kWindowHeight), 0.0f, 1.0f);
-		if (IsCollisionLine(segment, plane)) {
-			lineColor = RED;
-		} else {
-			lineColor = WHITE;
-		}
-
+		CameraMove(cameraRotate, cameraTranslate, clickPosition, keys, preKeys);
 		///
 		/// ↑更新処理ここまで
 		///
@@ -61,32 +63,35 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		
 		// ImGui
 		ImGui::Begin("Window");
-	//	ImGui::InputFloat3("Project", &project.x, "%.3f", ImGuiInputTextFlags_ReadOnly);
 		ImGui::DragFloat3("CameraTranslate", &cameraTranslate.x, 0.01f);
 		ImGui::DragFloat3("CameraRotate", &cameraRotate.x, 0.01f);
-		//ImGui::DragFloat3("sphere",&sphere.center.x, 0.01f);
-		//ImGui::DragFloat("SphereRadius", &sphere.radius, 0.01f);
-		ImGui::DragFloat3("plane", &plane.normal.x,0.01f);
-		plane.normal = normalize(plane.normal);
-		ImGui::DragFloat("planedistance", &plane.distance, 0.01f);
-
 		ImGui::DragFloat3("segment origin", &segment.origin.x, 0.01f);
 		ImGui::DragFloat3("segment diff", &segment.diff.x, 0.01f);
+		ImGui::DragFloat3("Triangle : v0", &triangle.vertex->x, 0.01f);
+		ImGui::DragFloat3("Triangle : v0", &triangle.vertex->x, 0.01f);
 
 		ImGui::End();
-
+		//--------------------- コメントアウト -----------------------//
+		// ImGui::DragFloat3("sphere",&sphere.center.x, 0.01f);
+		// ImGui::DragFloat("SphereRadius", &sphere.radius, 0.01f);
+		// ImGui::DragFloat3("plane", &plane.normal.x,0.01f);
+		// plane.normal = normalize(plane.normal);
+		// ImGui::DragFloat("planedistance", &plane.distance, 0.01f);
+		//----------------------------------------------------------//
 		// 線分の両端をスクリーン座標系まで変換
 		DrawGrid(ViewProjectionMatrix, ViewportMatrix);
-		// 円の描画
-		//DrawSphere(sphere, ViewProjectionMatrix, ViewportMatrix, SphreColor);
-		// 矩形の描画
-		DrawPlane(plane, ViewProjectionMatrix, ViewportMatrix,WHITE);
 		// 線の描画
 		Vector3 start = Transform(Transform(segment.origin, ViewProjectionMatrix), ViewportMatrix);
 		Vector3 end = Transform(Transform(Add(segment.origin, segment.diff), ViewProjectionMatrix), ViewportMatrix);
 		Novice::DrawLine((int)start.x, (int)start.y, (int)end.x, (int)end.y, lineColor);
+		DrawTriangle(triangle, ViewProjectionMatrix, ViewportMatrix, TraiangleColor);
 		
-
+		
+		
+		// 平面の描画
+		//DrawPlane(plane, ViewProjectionMatrix, ViewportMatrix,WHITE);
+		// 円の描画
+		// DrawSphere(sphere, ViewProjectionMatrix, ViewportMatrix, SphreColor);
 		///
 		/// ↑描画処理ここまで
 		///
