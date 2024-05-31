@@ -44,7 +44,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		Matrix4x4 ViewProjectionMatrix = Multiply(ViewMatrix, ProjectionMatrix);
 		Matrix4x4 ViewportMatrix = MakeViewportMatrix(0, 0, float(kWindowWidth), float(kWindowHeight), 0.0f, 1.0f);
 		CameraMove(cameraRotate, cameraTranslate, clickPosition, keys, preKeys);
-		if (IsCollisionRect(aabb1,aabb2) == true) {
+		if (isCollision(aabb1, aabb2) == true) {
 			rectColor = RED;
 		} else {
 			rectColor = WHITE;

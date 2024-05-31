@@ -7,6 +7,7 @@
 #include <iostream>
 #include <vector>
 #include<cmath>
+#include <algorithm>
 #include <corecrt_math_defines.h>
 #include "Vector3.h"
 #include "Vector4.h"
@@ -25,7 +26,7 @@ struct Sphere {
 };
 struct Plane {
 	Vector3 normal; // !<法線
-	float distance; // !<距離
+	float Lenght; // !<距離
 };
 struct Segment {
 	Vector3 origin;
@@ -82,7 +83,7 @@ Vector3 normalize(const Vector3& v) {
 	return {v.x / mag, v.y / mag, v.z / mag};
 }
 // ベクトル間の距離を計算する関数
-float distance(const Vector3& a, const Vector3& b) {
+float Lenght(const Vector3& a, const Vector3& b) {
 	float dx = b.x - a.x;
 	float dy = b.y - a.y;
 	float dz = b.z - a.z;
@@ -611,7 +612,7 @@ Vector3 Perpendicual(const Vector3& vector) {
 	return {0.0f, -vector.z, vector.y};
 }
 void DrawPlane(const Plane& plane, const Matrix4x4& viewProjectionMatrix, const Matrix4x4& viewportMatrix, uint32_t color) {
-    Vector3 center = multiply(plane.normal,plane.distance); // 1. 中心点を決める
+    Vector3 center = multiply(plane.normal,plane.Lenght); // 1. 中心点を決める
 	Vector3 perpendiculars[4];
 	perpendiculars[0] = normalize(Perpendicual(plane.normal)); // 2. 法線と垂直なベクトルを一つ求める
 	perpendiculars[1] = {-perpendiculars[0].x, -perpendiculars[0].y, -perpendiculars[0].z}; // 3. 2の逆ベクトルを求める
@@ -720,9 +721,9 @@ Vector3 ClosestPoint(const Vector3& point, const Segment& segment) {
 //--------------------- 円の当たり判定 ---------------------//
 bool IsCollision(const Sphere& s1, const Sphere& s2) {
 	// 2つの円の中心間の距離を計算
-	float distance = float(std::sqrt(std::pow(s2.center.x - s1.center.x, 2) + std::pow(s2.center.y - s1.center.y, 2) + std::pow(s2.center.z - s1.center.z, 2)));
+	float Lenght = float(std::sqrt(std::pow(s2.center.x - s1.center.x, 2) + std::pow(s2.center.y - s1.center.y, 2) + std::pow(s2.center.z - s1.center.z, 2)));
 	// 中心間の距離が2つの円の半径の合計よりも小さい場合、衝突しているとみなす
-	if (distance <= (s1.radius + s2.radius)) {
+	if (Lenght <= (s1.radius + s2.radius)) {
 		return true;
 	} else {
 		return false;
@@ -730,11 +731,11 @@ bool IsCollision(const Sphere& s1, const Sphere& s2) {
 }
 //--------------------- 円と平面の当たり判定 ---------------------//
 bool IsCollisionPlane(const Sphere& s1, const Plane& plane) {
-	Vector3 center = multiply(plane.normal, plane.distance);
+	Vector3 center = multiply(plane.normal, plane.Lenght);
 	// 2つの円の中心間の距離を計算
-	float distance = float(std::sqrt(std::pow(center.x - s1.center.x, 2) + std::pow(center.y - s1.center.y, 2) + std::pow(center.z - s1.center.z, 2)));
+	float Lenght = float(std::sqrt(std::pow(center.x - s1.center.x, 2) + std::pow(center.y - s1.center.y, 2) + std::pow(center.z - s1.center.z, 2)));
 	// 中心間の距離が2つの円の半径の合計よりも小さい場合、衝突しているとみなす
-	if (distance <= (s1.radius + plane.distance)) {
+	if (Lenght <= (s1.radius + plane.Lenght)) {
 		return true;
 	} else {
 		return false;
@@ -750,7 +751,7 @@ bool IsCollisionLine(const Segment& line, const Plane& plane) {
 	}
 
 	// t を計算
-	float t = (plane.distance - Dot(line.origin, plane.normal)) / dot;
+	float t = (plane.Lenght - Dot(line.origin, plane.normal)) / dot;
 
 	// t の値が [0, 1] の範囲内にあるかどうかで判断
 	if (t >= -1.0f && t >= 0.0f && t <= 1.0f ) {
@@ -903,6 +904,20 @@ bool IsCollisionRect(const AABB& aabb1, const AABB& aabb2) {
 	}
 }
 
+bool isCollision(const AABB& aabb, const Sphere& sphere) {
+	Vector3 closestPoint{
+	    clamp(sphere.center.x, aabb.min.x, aabb.max.x),
+	    clamp(sphere.center.y, aabb.min.y, aabb.max.y),
+	    clamp(sphere.center.z, aabb.min.z, aabb.max.z),
+	};
+	float distance = Lenght(closestPoint , sphere.center);
+	if (distance <= sphere.radius) {
+		return true;
+	} else {
+
+		return false;
+	}
+}
 static const int kRowHeight = 20;
 static const int kColumnWidth = 60;
 
