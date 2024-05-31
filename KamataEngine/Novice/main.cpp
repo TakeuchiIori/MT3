@@ -16,27 +16,17 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	Vector3 cameraTranslate{0.0f, 1.9f, -6.49f};
 	Vector3 cameraRotate{0.26f, 0.0f, 0.0f};
 	Vector3 cameraPosition{0.0f, 1.0f, -4.0f};
-	//Sphere sphere;
-	//sphere.center = {0.0f, 0.0f, 0.0f};
-	//sphere.radius = 1.0f;
 
-	//Plane plane{
-	//	1.0f,0.0f,1.0f,
-	//	0.0f
-	//};
-	Segment segment{
-	    {-2.0f, -1.0f, 0.0f},
-        {3.0f,  2.0f,  2.0f}
-    };
-	Triangle triangle{
-	    {{-1.0f, 0.0f, 0.0f}, // 頂点1の座標
-	     {0.0f, 1.0f, 0.0f},  // 頂点2の座標
-	     {1.0f, 0.0f, 0.0f}}   // 頂点3の座標
- 
+	AABB aabb1{
+	    .min{-0.5f, -0.5f, -0.5f},
+	    .max{0.0f,  0.0f,  0.0f },
 	};
-	Vector2Int clickPosition;
+	AABB aabb2{
+	    .min{0.2f, 0.2f, 0.2f},
+	    .max{1.0f, 1.0f, 1.0f},
+	};
+
 	uint32_t lineColor = WHITE;
-	uint32_t TraiangleColor = WHITE;
 	// ウィンドウの×ボタンが押されるまでループ
 	while (Novice::ProcessMessage() == 0) {
 		// フレームの開始

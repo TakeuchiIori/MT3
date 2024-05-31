@@ -34,6 +34,10 @@ struct Segment {
 struct Triangle {
 	Vector3 vertex[3];
 };
+struct AABB {
+	Vector3 min;
+	Vector3 max;
+};
 // Vector3 : 加算
 Vector3 Add(const Vector3& v1, const Vector3& v2) {
 	Vector3 result;
@@ -851,6 +855,11 @@ void CameraMove(Vector3& cameraRotate, Vector3& cameraTranslate, Vector2Int& cli
 	ImGui::Text("SPACE : DebugCamera on:off\nDebugCamera = %d (0 = false , 1 = true)\nPressingMouseLeftbutton : moveCameraRotate\nPressingMouseWheelbutton : moveCameraTranslate", isDebugCamera);
 	ImGui::End();
 }
+//--------------------- 矩形の当たり判定 ---------------------//
+bool IsCollisionRect(const AABB& aabb1, const AABB& aabb2) {
+
+}
+
 static const int kRowHeight = 20;
 static const int kColumnWidth = 60;
 
