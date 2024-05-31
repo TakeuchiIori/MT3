@@ -26,7 +26,7 @@ struct Sphere {
 };
 struct Plane {
 	Vector3 normal; // !<法線
-	float Lenght; // !<距離
+	float Length; // !<距離
 };
 struct Segment {
 	Vector3 origin;
@@ -83,7 +83,7 @@ Vector3 normalize(const Vector3& v) {
 	return {v.x / mag, v.y / mag, v.z / mag};
 }
 // ベクトル間の距離を計算する関数
-float Lenght(const Vector3& a, const Vector3& b) {
+float Length(const Vector3& a, const Vector3& b) {
 	float dx = b.x - a.x;
 	float dy = b.y - a.y;
 	float dz = b.z - a.z;
@@ -612,7 +612,7 @@ Vector3 Perpendicual(const Vector3& vector) {
 	return {0.0f, -vector.z, vector.y};
 }
 void DrawPlane(const Plane& plane, const Matrix4x4& viewProjectionMatrix, const Matrix4x4& viewportMatrix, uint32_t color) {
-    Vector3 center = multiply(plane.normal,plane.Lenght); // 1. 中心点を決める
+    Vector3 center = multiply(plane.normal,plane.Length); // 1. 中心点を決める
 	Vector3 perpendiculars[4];
 	perpendiculars[0] = normalize(Perpendicual(plane.normal)); // 2. 法線と垂直なベクトルを一つ求める
 	perpendiculars[1] = {-perpendiculars[0].x, -perpendiculars[0].y, -perpendiculars[0].z}; // 3. 2の逆ベクトルを求める
@@ -677,6 +677,17 @@ void DrawAABB(const AABB& aabb, const Matrix4x4& viewProjectionMatrix, const Mat
 	Novice::DrawLine(int(transformedCorners[3].x), int(transformedCorners[3].y), int(transformedCorners[7].x), int(transformedCorners[7].y), color);
 }
 
+void AB( AABB& aabb) {
+	
+	aabb.min.x = (min)(aabb.min.x, aabb.max.x);
+	aabb.max.x = (max)(aabb.min.x, aabb.max.x);
+
+	aabb.min.y = (min)(aabb.min.y, aabb.max.y);
+	aabb.max.y = (max)(aabb.min.y, aabb.max.y);
+
+	aabb.min.z = (min)(aabb.min.z, aabb.max.z);
+	aabb.max.z = (max)(aabb.min.z, aabb.max.z);
+}
     // 3. ビューポート変換行列
 Matrix4x4 MakeViewportMatrix(float left, float top, float width, float height, float minDepth, float maxDepth) {
 	Matrix4x4 result;
@@ -721,9 +732,9 @@ Vector3 ClosestPoint(const Vector3& point, const Segment& segment) {
 //--------------------- 円の当たり判定 ---------------------//
 bool IsCollision(const Sphere& s1, const Sphere& s2) {
 	// 2つの円の中心間の距離を計算
-	float Lenght = float(std::sqrt(std::pow(s2.center.x - s1.center.x, 2) + std::pow(s2.center.y - s1.center.y, 2) + std::pow(s2.center.z - s1.center.z, 2)));
+	float Length = float(std::sqrt(std::pow(s2.center.x - s1.center.x, 2) + std::pow(s2.center.y - s1.center.y, 2) + std::pow(s2.center.z - s1.center.z, 2)));
 	// 中心間の距離が2つの円の半径の合計よりも小さい場合、衝突しているとみなす
-	if (Lenght <= (s1.radius + s2.radius)) {
+	if (Length <= (s1.radius + s2.radius)) {
 		return true;
 	} else {
 		return false;
@@ -731,11 +742,11 @@ bool IsCollision(const Sphere& s1, const Sphere& s2) {
 }
 //--------------------- 円と平面の当たり判定 ---------------------//
 bool IsCollisionPlane(const Sphere& s1, const Plane& plane) {
-	Vector3 center = multiply(plane.normal, plane.Lenght);
+	Vector3 center = multiply(plane.normal, plane.Length);
 	// 2つの円の中心間の距離を計算
-	float Lenght = float(std::sqrt(std::pow(center.x - s1.center.x, 2) + std::pow(center.y - s1.center.y, 2) + std::pow(center.z - s1.center.z, 2)));
+	float Length = float(std::sqrt(std::pow(center.x - s1.center.x, 2) + std::pow(center.y - s1.center.y, 2) + std::pow(center.z - s1.center.z, 2)));
 	// 中心間の距離が2つの円の半径の合計よりも小さい場合、衝突しているとみなす
-	if (Lenght <= (s1.radius + plane.Lenght)) {
+	if (Length <= (s1.radius + plane.Length)) {
 		return true;
 	} else {
 		return false;
@@ -751,7 +762,7 @@ bool IsCollisionLine(const Segment& line, const Plane& plane) {
 	}
 
 	// t を計算
-	float t = (plane.Lenght - Dot(line.origin, plane.normal)) / dot;
+	float t = (plane.Length - Dot(line.origin, plane.normal)) / dot;
 
 	// t の値が [0, 1] の範囲内にあるかどうかで判断
 	if (t >= -1.0f && t >= 0.0f && t <= 1.0f ) {
@@ -906,11 +917,11 @@ bool IsCollisionRect(const AABB& aabb1, const AABB& aabb2) {
 
 bool isCollision(const AABB& aabb, const Sphere& sphere) {
 	Vector3 closestPoint{
-	    clamp(sphere.center.x, aabb.min.x, aabb.max.x),
-	    clamp(sphere.center.y, aabb.min.y, aabb.max.y),
-	    clamp(sphere.center.z, aabb.min.z, aabb.max.z),
+	    std::clamp(sphere.center.x, aabb.min.x, aabb.max.x),
+	    std::clamp(sphere.center.y, aabb.min.y, aabb.max.y),
+	    std::clamp(sphere.center.z, aabb.min.z, aabb.max.z),
 	};
-	float distance = Lenght(closestPoint , sphere.center);
+	float distance = Length(closestPoint , sphere.center);
 	if (distance <= sphere.radius) {
 		return true;
 	} else {

@@ -21,10 +21,10 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	    .min{-0.5f, -0.5f, -0.5f},
 	    .max{0.0f,  0.0f,  0.0f },
 	};
-	AABB aabb2{
-	    .min{0.2f, 0.2f, 0.2f},
-	    .max{1.0f, 1.0f, 1.0f},
-	};
+	
+	Sphere sphere;
+	sphere.center = {0.0f, 0.0f, 0.0f};
+	sphere.radius = 1.0f;
 	Vector2Int clickPosition;
 	//uint32_t lineColor = WHITE;
 	uint32_t rectColor = WHITE;
@@ -44,7 +44,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		Matrix4x4 ViewProjectionMatrix = Multiply(ViewMatrix, ProjectionMatrix);
 		Matrix4x4 ViewportMatrix = MakeViewportMatrix(0, 0, float(kWindowWidth), float(kWindowHeight), 0.0f, 1.0f);
 		CameraMove(cameraRotate, cameraTranslate, clickPosition, keys, preKeys);
-		if (isCollision(aabb1, aabb2) == true) {
+		if (isCollision(aabb1,sphere) == true) {
 			rectColor = RED;
 		} else {
 			rectColor = WHITE;
@@ -65,8 +65,9 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		ImGui::DragFloat3("CameraRotate", &cameraRotate.x, 0.01f);
 		ImGui::DragFloat3("aabb1.min.x", &aabb1.min.x, 0.01f);
 		ImGui::DragFloat3("aabb1.max.x", &aabb1.max.x, 0.01f);
-		ImGui::DragFloat3("aabb2.min.x", &aabb2.min.x, 0.01f);
-		ImGui::DragFloat3("aabb2.max.x", &aabb2.max.x, 0.01f);
+		AB(aabb1);
+		ImGui::DragFloat3("sphere.center.x", &sphere.center.x, 0.01f);
+		ImGui::DragFloat3("sphere.radius", &sphere.radius, 0.01f);
 
 		ImGui::End();
 		//--------------------- コメントアウト -----------------------//
@@ -84,7 +85,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		//Novice::DrawLine((int)start.x, (int)start.y, (int)end.x, (int)end.y, lineColor);
 		// 矩形の描画
 		DrawAABB(aabb1, ViewProjectionMatrix, ViewportMatrix, rectColor);
-		DrawAABB(aabb2, ViewProjectionMatrix, ViewportMatrix, WHITE);
+		DrawSphere(sphere, ViewProjectionMatrix, ViewportMatrix, BLACK);
 		
 		
 		// 平面の描画
