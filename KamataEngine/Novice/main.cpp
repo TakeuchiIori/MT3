@@ -65,8 +65,10 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		ImGui::DragFloat3("CameraRotate", &cameraRotate.x, 0.01f);
 		ImGui::DragFloat3("aabb1.min.x", &aabb1.min.x, 0.01f);
 		ImGui::DragFloat3("aabb1.max.x", &aabb1.max.x, 0.01f);
+		AB(aabb1);
 		ImGui::DragFloat3("aabb2.min.x", &aabb2.min.x, 0.01f);
 		ImGui::DragFloat3("aabb2.max.x", &aabb2.max.x, 0.01f);
+		AB(aabb2);
 
 		ImGui::End();
 		//--------------------- コメントアウト -----------------------//

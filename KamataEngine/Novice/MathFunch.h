@@ -675,7 +675,17 @@ void DrawAABB(const AABB& aabb, const Matrix4x4& viewProjectionMatrix, const Mat
 	Novice::DrawLine(int(transformedCorners[2].x), int(transformedCorners[2].y), int(transformedCorners[6].x), int(transformedCorners[6].y), color);
 	Novice::DrawLine(int(transformedCorners[3].x), int(transformedCorners[3].y), int(transformedCorners[7].x), int(transformedCorners[7].y), color);
 }
+void AB(AABB& aabb) {
 
+	aabb.min.x = (min)(aabb.min.x, aabb.max.x);
+	aabb.max.x = (max)(aabb.min.x, aabb.max.x);
+
+	aabb.min.y = (min)(aabb.min.y, aabb.max.y);
+	aabb.max.y = (max)(aabb.min.y, aabb.max.y);
+
+	aabb.min.z = (min)(aabb.min.z, aabb.max.z);
+	aabb.max.z = (max)(aabb.min.z, aabb.max.z);
+}
     // 3. ビューポート変換行列
 Matrix4x4 MakeViewportMatrix(float left, float top, float width, float height, float minDepth, float maxDepth) {
 	Matrix4x4 result;
