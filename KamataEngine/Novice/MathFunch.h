@@ -640,6 +640,42 @@ void DrawTriangle(const Triangle& triangle, const Matrix4x4& viewProjectionMatri
 	Novice::DrawTriangle(int(points[0].x), int(points[0].y), int(points[1].x), int(points[1].y), int(points[2].x), int(points[2].y),color,kFillModeWireFrame);
 
 }
+void DrawAABB(const AABB& aabb, const Matrix4x4& viewProjectionMatrix, const Matrix4x4& viewportMatrix, uint32_t color) {
+	Vector3 corners[8];
+	corners[0] = {aabb.min.x, aabb.min.y, aabb.min.z};
+	corners[1] = {aabb.max.x, aabb.min.y, aabb.min.z};
+	corners[2] = {aabb.min.x, aabb.max.y, aabb.min.z};
+	corners[3] = {aabb.max.x, aabb.max.y, aabb.min.z};
+	corners[4] = {aabb.min.x, aabb.min.y, aabb.max.z};
+	corners[5] = {aabb.max.x, aabb.min.y, aabb.max.z};
+	corners[6] = {aabb.min.x, aabb.max.y, aabb.max.z};
+	corners[7] = {aabb.max.x, aabb.max.y, aabb.max.z};
+
+	Vector3 transformedCorners[8];
+	for (int i = 0; i < 8; ++i) {
+		// Apply the viewProjectionMatrix
+		transformedCorners[i] = Transform(corners[i], viewProjectionMatrix);
+		// Apply the viewportMatrix
+		transformedCorners[i] = Transform(transformedCorners[i], viewportMatrix);
+	}
+
+	// Draw the edges of the AABB
+	Novice::DrawLine(int(transformedCorners[0].x), int(transformedCorners[0].y), int(transformedCorners[1].x), int(transformedCorners[1].y), color);
+	Novice::DrawLine(int(transformedCorners[1].x), int(transformedCorners[1].y), int(transformedCorners[3].x), int(transformedCorners[3].y), color);
+	Novice::DrawLine(int(transformedCorners[3].x), int(transformedCorners[3].y), int(transformedCorners[2].x), int(transformedCorners[2].y), color);
+	Novice::DrawLine(int(transformedCorners[2].x), int(transformedCorners[2].y), int(transformedCorners[0].x), int(transformedCorners[0].y), color);
+
+	Novice::DrawLine(int(transformedCorners[4].x), int(transformedCorners[4].y), int(transformedCorners[5].x), int(transformedCorners[5].y), color);
+	Novice::DrawLine(int(transformedCorners[5].x), int(transformedCorners[5].y), int(transformedCorners[7].x), int(transformedCorners[7].y), color);
+	Novice::DrawLine(int(transformedCorners[7].x), int(transformedCorners[7].y), int(transformedCorners[6].x), int(transformedCorners[6].y), color);
+	Novice::DrawLine(int(transformedCorners[6].x), int(transformedCorners[6].y), int(transformedCorners[4].x), int(transformedCorners[4].y), color);
+
+	Novice::DrawLine(int(transformedCorners[0].x), int(transformedCorners[0].y), int(transformedCorners[4].x), int(transformedCorners[4].y), color);
+	Novice::DrawLine(int(transformedCorners[1].x), int(transformedCorners[1].y), int(transformedCorners[5].x), int(transformedCorners[5].y), color);
+	Novice::DrawLine(int(transformedCorners[2].x), int(transformedCorners[2].y), int(transformedCorners[6].x), int(transformedCorners[6].y), color);
+	Novice::DrawLine(int(transformedCorners[3].x), int(transformedCorners[3].y), int(transformedCorners[7].x), int(transformedCorners[7].y), color);
+}
+
     // 3. ビューポート変換行列
 Matrix4x4 MakeViewportMatrix(float left, float top, float width, float height, float minDepth, float maxDepth) {
 	Matrix4x4 result;
@@ -857,7 +893,14 @@ void CameraMove(Vector3& cameraRotate, Vector3& cameraTranslate, Vector2Int& cli
 }
 //--------------------- 矩形の当たり判定 ---------------------//
 bool IsCollisionRect(const AABB& aabb1, const AABB& aabb2) {
-
+	if((aabb1.min.x <= aabb2.max.x && aabb1.max.x >= aabb2.min.x) && 
+	   (aabb1.min.y <= aabb2.max.y && aabb1.max.y >= aabb2.min.y) &&
+	   (aabb1.min.z <= aabb2.max.z && aabb1.max.z >= aabb2.min.z)) {
+		return true;
+	}
+	else {
+		return false;
+	}
 }
 
 static const int kRowHeight = 20;

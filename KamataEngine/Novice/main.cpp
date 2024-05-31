@@ -25,8 +25,9 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	    .min{0.2f, 0.2f, 0.2f},
 	    .max{1.0f, 1.0f, 1.0f},
 	};
-
-	uint32_t lineColor = WHITE;
+	Vector2Int clickPosition;
+	//uint32_t lineColor = WHITE;
+	uint32_t rectColor = WHITE;
 	// ウィンドウの×ボタンが押されるまでループ
 	while (Novice::ProcessMessage() == 0) {
 		// フレームの開始
@@ -43,11 +44,13 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		Matrix4x4 ViewProjectionMatrix = Multiply(ViewMatrix, ProjectionMatrix);
 		Matrix4x4 ViewportMatrix = MakeViewportMatrix(0, 0, float(kWindowWidth), float(kWindowHeight), 0.0f, 1.0f);
 		CameraMove(cameraRotate, cameraTranslate, clickPosition, keys, preKeys);
-		if (isCollisionTriangle(segment, triangle) == true) {
-			TraiangleColor = RED;
+		if (IsCollisionRect(aabb1,aabb2) == true) {
+			rectColor = RED;
 		} else {
-			TraiangleColor = WHITE;
+			rectColor = WHITE;
 		}
+
+
 		///
 		/// ↑更新処理ここまで
 		///
@@ -60,10 +63,10 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		ImGui::Begin("Window");
 		ImGui::DragFloat3("CameraTranslate", &cameraTranslate.x, 0.01f);
 		ImGui::DragFloat3("CameraRotate", &cameraRotate.x, 0.01f);
-		ImGui::DragFloat3("segment origin", &segment.origin.x, 0.01f);
-		ImGui::DragFloat3("segment diff", &segment.diff.x, 0.01f);
-		ImGui::DragFloat3("Triangle : v0", &triangle.vertex->x, 0.01f);
-		ImGui::DragFloat3("Triangle : v0", &triangle.vertex->x, 0.01f);
+		ImGui::DragFloat3("aabb1.min.x", &aabb1.min.x, 0.01f);
+		ImGui::DragFloat3("aabb1.max.x", &aabb1.max.x, 0.01f);
+		ImGui::DragFloat3("aabb2.min.x", &aabb2.min.x, 0.01f);
+		ImGui::DragFloat3("aabb2.max.x", &aabb2.max.x, 0.01f);
 
 		ImGui::End();
 		//--------------------- コメントアウト -----------------------//
@@ -76,12 +79,12 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		// 線分の両端をスクリーン座標系まで変換
 		DrawGrid(ViewProjectionMatrix, ViewportMatrix);
 		// 線の描画
-		Vector3 start = Transform(Transform(segment.origin, ViewProjectionMatrix), ViewportMatrix);
-		Vector3 end = Transform(Transform(Add(segment.origin, segment.diff), ViewProjectionMatrix), ViewportMatrix);
-		Novice::DrawLine((int)start.x, (int)start.y, (int)end.x, (int)end.y, lineColor);
-		// 三角形の描画
-		DrawTriangle(triangle, ViewProjectionMatrix, ViewportMatrix, TraiangleColor);
-		
+		//Vector3 start = Transform(Transform(segment.origin, ViewProjectionMatrix), ViewportMatrix);
+		//Vector3 end = Transform(Transform(Add(segment.origin, segment.diff), ViewProjectionMatrix), ViewportMatrix);
+		//Novice::DrawLine((int)start.x, (int)start.y, (int)end.x, (int)end.y, lineColor);
+		// 矩形の描画
+		DrawAABB(aabb1, ViewProjectionMatrix, ViewportMatrix, rectColor);
+		DrawAABB(aabb2, ViewProjectionMatrix, ViewportMatrix, WHITE);
 		
 		
 		// 平面の描画
