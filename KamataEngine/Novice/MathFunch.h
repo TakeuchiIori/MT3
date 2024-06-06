@@ -719,6 +719,7 @@ Vector3 Project(const Vector3& v1, const Vector3& v2) {
 	float scalar = dot / magSquared;
 	return {v2.x * scalar, v2.y * scalar, v2.z * scalar};
 }
+
 //--------------------- 最近接点を計算する関数 ---------------------//
 Vector3 ClosestPoint(const Vector3& point, const Segment& segment) {
 	Vector3 pointOnLine = segment.origin; // 直線上の任意の点はセグメントの始点と同じと仮定
