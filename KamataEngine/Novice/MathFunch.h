@@ -797,7 +797,7 @@ bool isCollisionTriangle(const Segment& segment, const Triangle& triangle) {
 	}
 
 	// 交点の計算
-	Vector3 intersectionPoint = segment.origin + direction * t;
+	Vector3 intersectionPoint = segment.origin + (direction * t); // 括弧を追加して順序を明確に
 
 	// バリデーション
 	Vector3 C = intersectionPoint - triangle.vertex[0];
@@ -812,7 +812,7 @@ bool isCollisionTriangle(const Segment& segment, const Triangle& triangle) {
 
 	return (u >= 0 && v >= 0 && (u + v) <= normSquared);
 }
-void CameraMove(Vector3& cameraRotate, Vector3& cameraTranslate, Vector2Int& clickPosition, char* keys, char* preKeys) {
+	void CameraMove(Vector3& cameraRotate, Vector3& cameraTranslate, Vector2Int& clickPosition, char* keys, char* preKeys) {
 	// カーソルを動かすときの感度
 	const float mouseSensitivity = 0.003f;
 	// カメラの移動速度
