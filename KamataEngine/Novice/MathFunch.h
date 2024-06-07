@@ -28,12 +28,12 @@ struct Plane {
 	Vector3 normal; // !<法線
 	float Length; // !<距離
 };
+struct Triangle {
+	Vector3 vertex[3];
+};
 struct Segment {
 	Vector3 origin;
 	Vector3 diff;
-};
-struct Triangle {
-	Vector3 vertex[3];
 };
 struct AABB {
 	Vector3 min;
@@ -813,6 +813,44 @@ bool isCollisionTriangle(const Segment& segment, const Triangle& triangle) {
 	float normSquared = Dot(normal, normal);
 
 	return (u >= 0 && v >= 0 && (u + v) <= normSquared);
+}
+bool isCollision(const AABB& aabb, const Segment& segment) {
+	Vector3 invDir = {1.0f / segment.diff.x, 1.0f / segment.diff.y, 1.0f / segment.diff.z};
+
+	float tmin = (aabb.min.x - segment.origin.x) * invDir.x;
+	float tmax = (aabb.max.x - segment.origin.x) * invDir.x;
+	if (tmin > tmax) {
+		std::swap(tmin, tmax);
+	}
+	float tymin = (aabb.min.y - segment.origin.y) * invDir.y;
+	float tymax = (aabb.max.y - segment.origin.y) * invDir.y;
+	if (tymin > tymax)
+		std::swap(tymin, tymax);
+
+	if ((tmin > tymax) || (tymin > tmax))
+		return false;
+
+	if (tymin > tmin)
+		tmin = tymin;
+
+	if (tymax < tmax)
+		tmax = tymax;
+
+	float tzmin = (aabb.min.z - segment.origin.z) * invDir.z;
+	float tzmax = (aabb.max.z - segment.origin.z) * invDir.z;
+	if (tzmin > tzmax)
+		std::swap(tzmin, tzmax);
+
+	if ((tmin > tzmax) || (tzmin > tmax))
+		return false;
+
+	if (tzmin > tmin)
+		tmin = tzmin;
+
+	if (tzmax < tmax)
+		tmax = tzmax;
+
+	return (tmin < 1.0f) && (tmax > 0.0f);
 }
 void CameraMove(Vector3& cameraRotate, Vector3& cameraTranslate, Vector2Int& clickPosition, char* keys, char* preKeys) {
 	// カーソルを動かすときの感度
