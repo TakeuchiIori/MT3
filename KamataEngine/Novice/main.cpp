@@ -16,19 +16,23 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	Vector3 cameraTranslate{0.0f, 1.9f, -6.49f};
 	Vector3 cameraRotate{0.26f, 0.0f, 0.0f};
 	Vector3 cameraPosition{0.0f, 1.0f, -4.0f};
+	Vector2Int clickPosition;
 
-	AABB aabb1{
-	    .min{-0.5f, -0.5f, -0.5f},
-	    .max{0.5f,  0.5f,  0.5f },
+	Vector3 rotate{0.0f, 0.0f, 0.0f};
+	OBB obb{
+		.center {-1.0f,0.0f,0.0f},
+		    .orientations = {
+			    {1.0f, 0.0f, 0.0f},
+			    {0.0f, 1.0f, 1.0f},
+				{0.0f,0.0f,1.0f}},
+			.size{1.5f,1.5f,1.5f}
 	};
-	Segment segment{
-	    .origin{-0.7f, 0.3f,  0.0f},
-        .diff{2.0f,  -0.5f, 0.0f}
+	Sphere sphere{
+	    .center{0.0f, 0.0f, 0.0f},
+        .radius{0.5f}
     };
 
-	Vector2Int clickPosition;
-	uint32_t lineColor = WHITE;
-	uint32_t rectColor = WHITE;
+	uint32_t color = WHITE;
 	// ウィンドウの×ボタンが押されるまでループ
 	while (Novice::ProcessMessage() == 0) {
 		// フレームの開始
@@ -39,16 +43,28 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		///
 		/// ↓更新処理ここから
 		/// 
+		Matrix4x4 rotateMatrix = MakeRotateMatrixXYZ(rotate);
+		obb.orientations[0].x = rotateMatrix.m[0][0];
+		obb.orientations[0].y = rotateMatrix.m[0][1];
+		obb.orientations[0].z = rotateMatrix.m[0][2];
+
+		obb.orientations[1].x = rotateMatrix.m[1][0];
+		obb.orientations[1].y = rotateMatrix.m[1][1];
+		obb.orientations[1].z = rotateMatrix.m[1][2];
+
+		obb.orientations[2].x = rotateMatrix.m[2][0];
+		obb.orientations[2].y = rotateMatrix.m[2][1];
+		obb.orientations[2].z = rotateMatrix.m[2][2];
 		Matrix4x4 CameraMatrix = MakeAffineMatrix({1.0f, 1.0f, 1.0f}, cameraRotate, Add(cameraPosition, cameraTranslate));
 		Matrix4x4 ViewMatrix = Inverse(CameraMatrix);
 		Matrix4x4 ProjectionMatrix = MakePerspectiveFovMatrix(0.45f, float(kWindowWidth) / float(kWindowHeight), 0.1f, 100.0f);
 		Matrix4x4 ViewProjectionMatrix = Multiply(ViewMatrix, ProjectionMatrix);
 		Matrix4x4 ViewportMatrix = MakeViewportMatrix(0, 0, float(kWindowWidth), float(kWindowHeight), 0.0f, 1.0f);
 		CameraMove(cameraRotate, cameraTranslate, clickPosition, keys, preKeys);
-		if (isCollision(aabb1, segment)) {
-			lineColor = RED;
+		if (IsCollision(obb, sphere)) {
+			color = RED;
 		} else {
-			lineColor = WHITE;
+			color = WHITE;
 		}
 
 
@@ -62,13 +78,19 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		
 		// ImGui
 		ImGui::Begin("Window");
-		ImGui::DragFloat3("CameraTranslate", &cameraTranslate.x, 0.01f);
-		ImGui::DragFloat3("CameraRotate", &cameraRotate.x, 0.01f);
-		ImGui::DragFloat3("aabb1.min.x", &aabb1.min.x, 0.01f);
-		ImGui::DragFloat3("aabb1.max.x", &aabb1.max.x, 0.01f);
-		ImGui::DragFloat3("segment.diff", &segment.diff.x, 0.01f);
-		ImGui::DragFloat3("segment.origin.x", &segment.origin.x, 0.01f);
-		AB(aabb1);
+		ImGui::DragFloat3("obb.x", &obb.center.x, 0.01f);
+		ImGui::DragFloat("rotateX", &rotate.x, 0.01f);
+		ImGui::DragFloat("rotateY", &rotate.y, 0.01f);
+		ImGui::DragFloat("rotateZ", &rotate.z, 0.01f);
+
+		ImGui::DragFloat3("obb.orientations1", &obb.orientations[0].x, 0.01f);
+		ImGui::DragFloat3("obb.orientations2", &obb.orientations[1].x, 0.01f);
+		ImGui::DragFloat3("obb.orientations3", &obb.orientations[2].x, 0.01f);
+
+		ImGui::DragFloat3("obb.size", &obb.size.x, 0.01f);
+
+		ImGui::DragFloat3("sphere.center", &sphere.center.x, 0.01f);
+		ImGui::DragFloat("sphere.radius", &sphere.radius, 0.01f);
 
 		ImGui::End();
 		//--------------------- コメントアウト -----------------------//
@@ -81,17 +103,17 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		// 線分の両端をスクリーン座標系まで変換
 		DrawGrid(ViewProjectionMatrix, ViewportMatrix);
 		// 線の描画
-		Vector3 start = Transform(Transform(segment.origin, ViewProjectionMatrix), ViewportMatrix);
-		Vector3 end = Transform(Transform(Add(segment.origin, segment.diff), ViewProjectionMatrix), ViewportMatrix);
-		Novice::DrawLine((int)start.x, (int)start.y, (int)end.x, (int)end.y, lineColor);
+		//Vector3 start = Transform(Transform(segment.origin, ViewProjectionMatrix), ViewportMatrix);
+		//Vector3 end = Transform(Transform(Add(segment.origin, segment.diff), ViewProjectionMatrix), ViewportMatrix);
+		//Novice::DrawLine((int)start.x, (int)start.y, (int)end.x, (int)end.y, lineColor);
 		// 矩形の描画
-		DrawAABB(aabb1, ViewProjectionMatrix, ViewportMatrix, rectColor);
-		
+		//DrawAABB(aabb1, ViewProjectionMatrix, ViewportMatrix, rectColor);
+		DrawOBB(obb, ViewProjectionMatrix, ViewportMatrix, color);
 		
 		// 平面の描画
 		//DrawPlane(plane, ViewProjectionMatrix, ViewportMatrix,WHITE);
 		// 円の描画
-		// DrawSphere(sphere, ViewProjectionMatrix, ViewportMatrix, SphreColor);
+		 DrawSphere(sphere, ViewProjectionMatrix, ViewportMatrix, WHITE);
 		///
 		/// ↑描画処理ここまで
 		///

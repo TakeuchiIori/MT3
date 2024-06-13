@@ -859,12 +859,86 @@ bool isCollision(const AABB& aabb, const Segment& segment) {
 }
 // OBB
 bool IsCollision(const OBB& obb, const Sphere& sphere) {
+	// 球の中心をOBBのローカル座標系に変換
+	Vector3 d = sphere.center - obb.center;
+	float localX = d.dot(obb.orientations[0]);
+	float localY = d.dot(obb.orientations[1]);
+	float localZ = d.dot(obb.orientations[2]);
 
+	// 球の半径を使ってOBBの範囲内にあるかどうかを判定
+	if (std::abs(localX) > (obb.size.x * 0.5f + sphere.radius))
+		return false;
+	if (std::abs(localY) > (obb.size.y * 0.5f + sphere.radius))
+		return false;
+	if (std::abs(localZ) > (obb.size.z * 0.5f + sphere.radius))
+		return false;
+
+	// 距離の計算
+	float distanceSq = 0.0f;
+	float excess;
+
+	excess = std::abs(localX) - obb.size.x * 0.5f;
+	if (excess > 0.0f)
+		distanceSq += excess * excess;
+
+	excess = std::abs(localY) - obb.size.y * 0.5f;
+	if (excess > 0.0f)
+		distanceSq += excess * excess;
+
+	excess = std::abs(localZ) - obb.size.z * 0.5f;
+	if (excess > 0.0f)
+		distanceSq += excess * excess;
+
+	return distanceSq <= sphere.radius * sphere.radius;
 }
 void DrawOBB(const OBB& obb, const Matrix4x4& viewProjectionMatrix, const Matrix4x4& viewPortMatrix, uint32_t color) {
+	// OBBの8つの頂点を計算
+	Vector3 vertices[8];
+	Vector3 halfSize = obb.size * 0.5f;
 
+	// 各頂点を計算
+	vertices[0] = obb.center - obb.orientations[0] * halfSize.x - obb.orientations[1] * halfSize.y - obb.orientations[2] * halfSize.z;
+	vertices[1] = obb.center + obb.orientations[0] * halfSize.x - obb.orientations[1] * halfSize.y - obb.orientations[2] * halfSize.z;
+	vertices[2] = obb.center - obb.orientations[0] * halfSize.x + obb.orientations[1] * halfSize.y - obb.orientations[2] * halfSize.z;
+	vertices[3] = obb.center + obb.orientations[0] * halfSize.x + obb.orientations[1] * halfSize.y - obb.orientations[2] * halfSize.z;
+	vertices[4] = obb.center - obb.orientations[0] * halfSize.x - obb.orientations[1] * halfSize.y + obb.orientations[2] * halfSize.z;
+	vertices[5] = obb.center + obb.orientations[0] * halfSize.x - obb.orientations[1] * halfSize.y + obb.orientations[2] * halfSize.z;
+	vertices[6] = obb.center - obb.orientations[0] * halfSize.x + obb.orientations[1] * halfSize.y + obb.orientations[2] * halfSize.z;
+	vertices[7] = obb.center + obb.orientations[0] * halfSize.x + obb.orientations[1] * halfSize.y + obb.orientations[2] * halfSize.z;
+
+	// 頂点をビュー・プロジェクション行列を使って変換
+	Vector3 transformedVertices[8];
+	for (int i = 0; i < 8; ++i) {
+		transformedVertices[i] = Transform(vertices[i], viewProjectionMatrix);
+		transformedVertices[i] = Transform(transformedVertices[i], viewPortMatrix);
+	}
+
+	// OBBのエッジを描画
+	int points[8][2];
+	for (int i = 0; i < 8; ++i) {
+		points[i][0] = static_cast<int>(transformedVertices[i].x);
+		points[i][1] = static_cast<int>(transformedVertices[i].y);
+	}
+
+	// 下部四角形
+	Novice::DrawLine(points[0][0], points[0][1], points[1][0], points[1][1], color); // Edge 0-1
+	Novice::DrawLine(points[1][0], points[1][1], points[3][0], points[3][1], color); // Edge 1-3
+	Novice::DrawLine(points[3][0], points[3][1], points[2][0], points[2][1], color); // Edge 3-2
+	Novice::DrawLine(points[2][0], points[2][1], points[0][0], points[0][1], color); // Edge 2-0
+
+	// 上部四角形
+	Novice::DrawLine(points[4][0], points[4][1], points[5][0], points[5][1], color); // Edge 4-5
+	Novice::DrawLine(points[5][0], points[5][1], points[7][0], points[7][1], color); // Edge 5-7
+	Novice::DrawLine(points[7][0], points[7][1], points[6][0], points[6][1], color); // Edge 7-6
+	Novice::DrawLine(points[6][0], points[6][1], points[4][0], points[4][1], color); // Edge 6-4
+
+	// 垂直エッジ
+	Novice::DrawLine(points[0][0], points[0][1], points[4][0], points[4][1], color); // Edge 0-4
+	Novice::DrawLine(points[1][0], points[1][1], points[5][0], points[5][1], color); // Edge 1-5
+	Novice::DrawLine(points[2][0], points[2][1], points[6][0], points[6][1], color); // Edge 2-6
+	Novice::DrawLine(points[3][0], points[3][1], points[7][0], points[7][1], color);
 }
-void CameraMove(Vector3& cameraRotate, Vector3& cameraTranslate, Vector2Int& clickPosition, char* keys, char* preKeys) {
+	void CameraMove(Vector3& cameraRotate, Vector3& cameraTranslate, Vector2Int& clickPosition, char* keys, char* preKeys) {
 	// カーソルを動かすときの感度
 	const float mouseSensitivity = 0.003f;
 	// カメラの移動速度
