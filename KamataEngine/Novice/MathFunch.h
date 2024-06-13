@@ -39,7 +39,12 @@ struct AABB {
 	Vector3 min;
 	Vector3 max;
 };
-// Vector3 : 加算
+struct OBB {
+	Vector3 center;
+	Vector3 orientations[3];
+	Vector3 size;
+};
+    // Vector3 : 加算
 Vector3 Add(const Vector3& v1, const Vector3& v2) {
 	Vector3 result;
 	result.x = v1.x + v2.x;
@@ -851,6 +856,13 @@ bool isCollision(const AABB& aabb, const Segment& segment) {
 		tmax = tzmax;
 
 	return (tmin < 1.0f) && (tmax > 0.0f);
+}
+// OBB
+bool IsCollision(const OBB& obb, const Sphere& sphere) {
+
+}
+void DrawOBB(const OBB& obb, const Matrix4x4& viewProjectionMatrix, const Matrix4x4& viewPortMatrix, uint32_t color) {
+
 }
 void CameraMove(Vector3& cameraRotate, Vector3& cameraTranslate, Vector2Int& clickPosition, char* keys, char* preKeys) {
 	// カーソルを動かすときの感度
