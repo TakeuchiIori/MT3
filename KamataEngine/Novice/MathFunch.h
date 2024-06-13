@@ -857,7 +857,7 @@ bool isCollision(const AABB& aabb, const Segment& segment) {
 
 	return (tmin < 1.0f) && (tmax > 0.0f);
 }
-// OBB
+//-------------------- OBB --------------------//
 bool IsCollision(const OBB& obb, const Sphere& sphere) {
 	// 球の中心をOBBのローカル座標系に変換
 	Vector3 d = sphere.center - obb.center;
@@ -891,6 +891,48 @@ bool IsCollision(const OBB& obb, const Sphere& sphere) {
 
 	return distanceSq <= sphere.radius * sphere.radius;
 }
+
+bool IsCollision(const Segment& segment, const OBB& obb) {
+	// 線分の始点をOBBのローカル座標系に変換
+	Vector3 localOrigin = segment.origin - obb.center;
+
+	// 線分の方向ベクトルをOBBのローカル座標系に変換
+	float localDir[3] = {segment.diff.dot(obb.orientations[0]), segment.diff.dot(obb.orientations[1]), segment.diff.dot(obb.orientations[2])};
+
+	float localStart[3] = {localOrigin.dot(obb.orientations[0]), localOrigin.dot(obb.orientations[1]), localOrigin.dot(obb.orientations[2])};
+
+	// OBBの半サイズ
+	float halfSize[3] = {obb.size.x * 0.5f, obb.size.y * 0.5f, obb.size.z * 0.5f};
+
+	float tMin = 0.0f;
+	float tMax = 1.0f;
+
+	// 各軸に対してスラブ法でチェック
+	for (int i = 0; i < 3; ++i) {
+		float e = localStart[i];
+		float f = localDir[i];
+		float halfExtent = halfSize[i];
+
+		if (fabs(f) > 0.00001f) {
+			float t1 = (-halfExtent - e) / f;
+			float t2 = (halfExtent - e) / f;
+
+			if (t1 > t2)
+				std::swap(t1, t2);
+
+			tMin = max(tMin, t1);
+			tMax = min(tMax, t2);
+
+			if (tMin > tMax)
+				return false;
+		} else if (-e - halfExtent > 0.0f || -e + halfExtent < 0.0f) {
+			return false;
+		}
+	}
+
+	return true;
+}
+
 void DrawOBB(const OBB& obb, const Matrix4x4& viewProjectionMatrix, const Matrix4x4& viewPortMatrix, uint32_t color) {
 	// OBBの8つの頂点を計算
 	Vector3 vertices[8];

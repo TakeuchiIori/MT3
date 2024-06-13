@@ -27,9 +27,10 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 				{0.0f,0.0f,1.0f}},
 			.size{1.5f,1.5f,1.5f}
 	};
-	Sphere sphere{
-	    .center{0.0f, 0.0f, 0.0f},
-        .radius{0.5f}
+
+	Segment segment{
+	    .origin{-0.7f, 0.3f,  0.0f},
+        .diff{2.0f,  -0.5f, 0.0f}
     };
 
 	uint32_t color = WHITE;
@@ -61,7 +62,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		Matrix4x4 ViewProjectionMatrix = Multiply(ViewMatrix, ProjectionMatrix);
 		Matrix4x4 ViewportMatrix = MakeViewportMatrix(0, 0, float(kWindowWidth), float(kWindowHeight), 0.0f, 1.0f);
 		CameraMove(cameraRotate, cameraTranslate, clickPosition, keys, preKeys);
-		if (IsCollision(obb, sphere)) {
+		if (IsCollision(segment,obb)) {
 			color = RED;
 		} else {
 			color = WHITE;
@@ -89,8 +90,8 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
 		ImGui::DragFloat3("obb.size", &obb.size.x, 0.01f);
 
-		ImGui::DragFloat3("sphere.center", &sphere.center.x, 0.01f);
-		ImGui::DragFloat("sphere.radius", &sphere.radius, 0.01f);
+		ImGui::DragFloat3("segment.diff.x", &segment.diff.x, 0.01f);
+		ImGui::DragFloat3("segment.origin.x", &segment.origin.x, 0.01f);
 
 		ImGui::End();
 		//--------------------- コメントアウト -----------------------//
@@ -103,9 +104,9 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		// 線分の両端をスクリーン座標系まで変換
 		DrawGrid(ViewProjectionMatrix, ViewportMatrix);
 		// 線の描画
-		//Vector3 start = Transform(Transform(segment.origin, ViewProjectionMatrix), ViewportMatrix);
-		//Vector3 end = Transform(Transform(Add(segment.origin, segment.diff), ViewProjectionMatrix), ViewportMatrix);
-		//Novice::DrawLine((int)start.x, (int)start.y, (int)end.x, (int)end.y, lineColor);
+		Vector3 start = Transform(Transform(segment.origin, ViewProjectionMatrix), ViewportMatrix);
+		Vector3 end = Transform(Transform(Add(segment.origin, segment.diff), ViewProjectionMatrix), ViewportMatrix);
+		Novice::DrawLine((int)start.x, (int)start.y, (int)end.x, (int)end.y, BLACK);
 		// 矩形の描画
 		//DrawAABB(aabb1, ViewProjectionMatrix, ViewportMatrix, rectColor);
 		DrawOBB(obb, ViewProjectionMatrix, ViewportMatrix, color);
@@ -113,7 +114,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		// 平面の描画
 		//DrawPlane(plane, ViewProjectionMatrix, ViewportMatrix,WHITE);
 		// 円の描画
-		 DrawSphere(sphere, ViewProjectionMatrix, ViewportMatrix, WHITE);
+		// DrawSphere(sphere, ViewProjectionMatrix, ViewportMatrix, WHITE);
 		///
 		/// ↑描画処理ここまで
 		///
