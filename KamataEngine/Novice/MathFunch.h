@@ -1095,6 +1095,64 @@ bool isCollision(const AABB& aabb, const Sphere& sphere) {
 		return false;
 	}
 }
+
+void GetOBBVertices(const OBB& obb, Vector3 vertices[8]) {
+	Vector3 halfSize = {obb.size.x / 2, obb.size.y / 2, obb.size.z / 2};
+	vertices[0] = obb.center + obb.orientations[0] * halfSize.x + obb.orientations[1] * halfSize.y + obb.orientations[2] * halfSize.z;
+	vertices[1] = obb.center - obb.orientations[0] * halfSize.x + obb.orientations[1] * halfSize.y + obb.orientations[2] * halfSize.z;
+	vertices[2] = obb.center + obb.orientations[0] * halfSize.x - obb.orientations[1] * halfSize.y + obb.orientations[2] * halfSize.z;
+	vertices[3] = obb.center + obb.orientations[0] * halfSize.x + obb.orientations[1] * halfSize.y - obb.orientations[2] * halfSize.z;
+	vertices[4] = obb.center - obb.orientations[0] * halfSize.x - obb.orientations[1] * halfSize.y + obb.orientations[2] * halfSize.z;
+	vertices[5] = obb.center - obb.orientations[0] * halfSize.x + obb.orientations[1] * halfSize.y - obb.orientations[2] * halfSize.z;
+	vertices[6] = obb.center + obb.orientations[0] * halfSize.x - obb.orientations[1] * halfSize.y - obb.orientations[2] * halfSize.z;
+	vertices[7] = obb.center - obb.orientations[0] * halfSize.x - obb.orientations[1] * halfSize.y - obb.orientations[2] * halfSize.z;
+}
+
+bool IsCollision(const OBB& obb1, const OBB& obb2) {
+	Vector3 vertices1[8], vertices2[8];
+	GetOBBVertices(obb1, vertices1);
+	GetOBBVertices(obb2, vertices2);
+
+	Vector3 axes[15];
+	for (int i = 0; i < 3; ++i) {
+		axes[i] = obb1.orientations[i];
+		axes[i + 3] = obb2.orientations[i];
+	}
+
+	int k = 6;
+	for (int i = 0; i < 3; ++i) {
+		for (int j = 0; j < 3; ++j) {
+			axes[k++] = obb1.orientations[i].cross(obb2.orientations[j]);
+		}
+	}
+
+	for (int i = 0; i < 15; ++i) {
+		float min1 = vertices1[0].dot(axes[i]), max1 = vertices1[0].dot(axes[i]);
+		for (int j = 1; j < 8; ++j) {
+			float projection = vertices1[j].dot(axes[i]);
+			if (projection < min1)
+				min1 = projection;
+			if (projection > max1)
+				max1 = projection;
+		}
+
+		float min2 = vertices2[0].dot(axes[i]), max2 = vertices2[0].dot(axes[i]);
+		for (int j = 1; j < 8; ++j) {
+			float projection = vertices2[j].dot(axes[i]);
+			if (projection < min2)
+				min2 = projection;
+			if (projection > max2)
+				max2 = projection;
+		}
+
+		if (max1 < min2 || max2 < min1)
+			return false;
+	}
+
+	return true;
+}
+
+
 static const int kRowHeight = 20;
 static const int kColumnWidth = 60;
 
