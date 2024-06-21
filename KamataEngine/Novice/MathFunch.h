@@ -11,10 +11,12 @@
 #include <corecrt_math_defines.h>
 #include "Vector3.h"
 #include "Vector4.h"
+#include "Vector2.h"
 
 using namespace std;
 struct Matrix4x4 {
 	float m[4][4];
+
 };
 struct Vector2Int {
 	int x;
@@ -1170,4 +1172,60 @@ void VectorScreenPrintf(int x, int y, const Vector3& vector, const char* label) 
 	Novice::ScreenPrintf(x + kColumnWidth, y, "%.02f", vector.y);
 	Novice::ScreenPrintf(x + kColumnWidth * 2, y, "%.02f", vector.z);
 	Novice::ScreenPrintf(x + kColumnWidth * 3, y, "%s", label);
+}
+Vector3 Lerp(const Vector3& a, const Vector3& b, float t) {
+	Vector3 ans;
+	ans.x = t * a.x + (1.0f - t) * b.x;
+	ans.y = t * a.y + (1.0f - t) * b.y;
+	ans.z = t * a.z + (1.0f - t) * b.z;
+	return ans;
+}
+Vector3 Bezier(const Vector3& p0, const Vector3& p1, const Vector3& p2, float t) {
+	Vector3 p0p1 = Lerp(p0, p1, t);
+	Vector3 p1p2 = Lerp(p1, p2, t);
+	Vector3 p = Lerp(p0p1, p1p2, t);
+	return p;
+}
+void DrawBezierCurve(const Vector3& controlPoint0, const Vector3& controlPoint1, const Vector3& controlPoint2, const Matrix4x4& viewProjectionMatrix, const Matrix4x4& viewPortMatrix, uint32_t color) {
+	const int numSegments = 100;
+	float step = 1.0f / numSegments;
+
+	Vector3 previousPoint = Bezier(controlPoint0, controlPoint1, controlPoint2, 0.0f);
+
+	for (int i = 1; i <= numSegments; ++i) {
+		float t = i * step;
+		Vector3 currentPoint = Bezier(controlPoint0, controlPoint1, controlPoint2, t);
+
+		// 座標変換
+		Vector3 transformedPrevious = Transform(previousPoint, viewProjectionMatrix);
+		transformedPrevious = Transform(transformedPrevious, viewPortMatrix);
+
+		Vector3 transformedCurrent = Transform(currentPoint, viewProjectionMatrix);
+		transformedCurrent = Transform(transformedCurrent, viewPortMatrix);
+
+		// 描画（ラインでつなぐ）
+		Novice::DrawLine(static_cast<int>(transformedPrevious.x), static_cast<int>(transformedPrevious.y), static_cast<int>(transformedCurrent.x), static_cast<int>(transformedCurrent.y), color);
+
+		previousPoint = currentPoint;
+	}
+}
+void DrawControlPoints(const Vector3& controlPoint0, const Vector3& controlPoint1, const Vector3& controlPoint2, const Matrix4x4& viewProjectionMatrix, const Matrix4x4& viewPortMatrix) {
+	// 変換
+	Vector3 transformedPoint0 = Transform(controlPoint0, viewProjectionMatrix);
+	transformedPoint0 = Transform(transformedPoint0, viewPortMatrix);
+
+	Vector3 transformedPoint1 = Transform(controlPoint1, viewProjectionMatrix);
+	transformedPoint1 = Transform(transformedPoint1, viewPortMatrix);
+
+	Vector3 transformedPoint2 = Transform(controlPoint2, viewProjectionMatrix);
+	transformedPoint2 = Transform(transformedPoint2, viewPortMatrix);
+
+	// 描画
+	Novice::DrawEllipse(static_cast<int>(transformedPoint0.x), static_cast<int>(transformedPoint0.y), 3, 3, 0.0f, BLUE, kFillModeSolid);
+	Novice::DrawEllipse(static_cast<int>(transformedPoint1.x), static_cast<int>(transformedPoint1.y), 3, 3, 0.0f, BLUE, kFillModeSolid);
+	Novice::DrawEllipse(static_cast<int>(transformedPoint2.x), static_cast<int>(transformedPoint2.y), 3, 3, 0.0f, BLUE, kFillModeSolid);
+}
+void DrawBezier(const Vector3& controlPoint0, const Vector3& controlPoint1, const Vector3& controlPoint2, const Matrix4x4& viewProjectionMatrix, const Matrix4x4& viewPortMatrix, uint32_t color) {
+	DrawControlPoints(controlPoint0, controlPoint1, controlPoint2, viewProjectionMatrix, viewPortMatrix);
+	DrawBezierCurve(controlPoint0, controlPoint1, controlPoint2, viewProjectionMatrix, viewPortMatrix, color);
 }
