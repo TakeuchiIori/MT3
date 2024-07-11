@@ -46,6 +46,9 @@ struct OBB {
 	Vector3 orientations[3];
 	Vector3 size;
 };
+
+
+
     // Vector3 : 加算
 Vector3 Add(const Vector3& v1, const Vector3& v2) {
 	Vector3 result;
@@ -477,6 +480,10 @@ Matrix4x4 MakeAffineMatrix(const Vector3& scale, const Vector3& rotate, const Ve
 	return result;
 }
 
+
+Matrix4x4 operator+(const Matrix4x4& m1, const Matrix4x4& m2) { return Add(m1, m2); }
+Matrix4x4 operator-(const Matrix4x4& m1, const Matrix4x4& m2) { return Subtract(m1, m2); }
+Matrix4x4 operator*(const Matrix4x4& m1, const Matrix4x4& m2) { return Multiply(m1, m2); }
 
 //=============================12. レンタリングパイプラインVer2=============================//
 // 1. 透視投影行列

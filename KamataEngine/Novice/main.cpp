@@ -102,40 +102,45 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		///
 		
 		// ImGui
+		Vector3 a{0.2f, 1.0f, 0.0f};
+		Vector3 b{2.4f, 3.1f, 1.2f};
+		Vector3 c = a + b;
+		Vector3 d = a - b;
+		Vector3 e = a * 2.4f;
+		Vector3 rotate{0.4f, 1.43f, -0.8f};
+		Matrix4x4 rotateXMatrix = MakeRotateMatrixX(rotate.x);
+		Matrix4x4 rotateYMatrix = MakeRotateMatrixY(rotate.y);
+		Matrix4x4 rotateZMatrix = MakeRotateMatrixZ(rotate.z);
+		Matrix4x4 rotateMatrix = rotateXMatrix * rotateYMatrix * rotateZMatrix;
+
 		ImGui::Begin("Window");
-		// 個別にSliderを配置
-		ImGui::SliderFloat3("Translate 0", &translates[0].x, -2.0f, 2.0f);
-		ImGui::SliderFloat3("Rotate 0", &rotates[0].x, -10.0f, 10.0f);
-		ImGui::SliderFloat3("Scale 0", &scales[0].x, 0.1f, 10.0f);
-
-		ImGui::SliderFloat3("Translate 1", &translates[1].x, -2.0f, 2.0f);
-		ImGui::SliderFloat3("Rotate 1", &rotates[1].x, -10.0f, 10.0f);
-		ImGui::SliderFloat3("Scale 1", &scales[1].x, 0.1f, 10.0f);
-
-		ImGui::SliderFloat3("Translate 2", &translates[2].x, -2.0f, 2.0f);
-		ImGui::SliderFloat3("Rotate 2", &rotates[2].x, -10.0f, 10.0f);
-		ImGui::SliderFloat3("Scale 2", &scales[2].x, 0.1f, 10.0f);
-
+		ImGui::Text("c: %f, %f, %f", c.x, c.y, c.z);
+		ImGui::Text("d: %f, %f, %f", d.x, d.y, d.z);
+		ImGui::Text("e: %f, %f, %f", e.x, e.y, e.z);
+		ImGui::Text(
+		    "matrix: \n%f, %f, %f, %f\n%f, %f, %f, %f \n%f, %f, %f, %f \n%f, %f, %f, %f\n", rotateMatrix.m[0][0], rotateMatrix.m[0][1], rotateMatrix.m[0][2], rotateMatrix.m[0][3],
+		    rotateMatrix.m[1][0], rotateMatrix.m[1][1], rotateMatrix.m[1][2], rotateMatrix.m[1][3], rotateMatrix.m[2][0], rotateMatrix.m[2][1], rotateMatrix.m[2][2], rotateMatrix.m[2][3],
+		    rotateMatrix.m[3][0], rotateMatrix.m[3][1], rotateMatrix.m[3][2], rotateMatrix.m[3][3]);
 		ImGui::End();
 		// 線分の両端をスクリーン座標系まで変換
-		DrawGrid(ViewProjectionMatrix, ViewportMatrix);
+		//DrawGrid(ViewProjectionMatrix, ViewportMatrix);
 
-		DrawSphere(shoulderSphere, ViewProjectionMatrix, ViewportMatrix, RED);
-		DrawSphere(elbowSphere, ViewProjectionMatrix, ViewportMatrix, BLUE);
-		DrawSphere(handSphere, ViewProjectionMatrix, ViewportMatrix, GREEN);
-		Vector3 sphereCenters[3] = {
-		    {shoulderSphere.center.x, shoulderSphere.center.y, shoulderSphere.center.z},
-		    {elbowSphere.center.x,    elbowSphere.center.y,    elbowSphere.center.z   },
-		    {handSphere.center.x,     handSphere.center.y,     handSphere.center.z    },
-		};
+		//DrawSphere(shoulderSphere, ViewProjectionMatrix, ViewportMatrix, RED);
+		//DrawSphere(elbowSphere, ViewProjectionMatrix, ViewportMatrix, BLUE);
+		//DrawSphere(handSphere, ViewProjectionMatrix, ViewportMatrix, GREEN);
+		//Vector3 sphereCenters[3] = {
+		//    {shoulderSphere.center.x, shoulderSphere.center.y, shoulderSphere.center.z},
+		//    {elbowSphere.center.x,    elbowSphere.center.y,    elbowSphere.center.z   },
+		//    {handSphere.center.x,     handSphere.center.y,     handSphere.center.z    },
+		//};
 
-		for (int i = 0; i < 2; ++i) {
-			Vector3 start = Transform(sphereCenters[i], ViewProjectionMatrix);
-			start = Transform(start, ViewportMatrix);
-			Vector3 end = Transform(sphereCenters[i + 1], ViewProjectionMatrix);
-			end = Transform(end, ViewportMatrix);
-			Novice::DrawLine(int(start.x), int(start.y), int(end.x), int(end.y), BLACK);
-		}
+		//for (int i = 0; i < 2; ++i) {
+		//	Vector3 start = Transform(sphereCenters[i], ViewProjectionMatrix);
+		//	start = Transform(start, ViewportMatrix);
+		//	Vector3 end = Transform(sphereCenters[i + 1], ViewProjectionMatrix);
+		//	end = Transform(end, ViewportMatrix);
+		//	Novice::DrawLine(int(start.x), int(start.y), int(end.x), int(end.y), BLACK);
+		//}
 
 		///
 		/// ↑描画処理ここまで
