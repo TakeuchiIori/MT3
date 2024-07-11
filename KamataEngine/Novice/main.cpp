@@ -67,14 +67,10 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		ImGui::End();
 		// 線分の両端をスクリーン座標系まで変換
 		DrawGrid(ViewProjectionMatrix, ViewportMatrix);
-		// 線の描画
-		/*Vector3 start = Transform(Transform(segment.origin, ViewProjectionMatrix), ViewportMatrix);
-		Vector3 end = Transform(Transform(Add(segment.origin, segment.diff), ViewProjectionMatrix), ViewportMatrix);
-		Novice::DrawLine((int)start.x, (int)start.y, (int)end.x, (int)end.y, BLACK);*/
+		
 		DrawControlPoints(controlPoints[0], controlPoints[1], controlPoints[2], controlPoints[3], ViewProjectionMatrix, ViewportMatrix);
-		DrawCatmullRom(controlPoints[0], controlPoints[1], ViewProjectionMatrix, ViewportMatrix, color);
-		//DrawCatmullRomSpline(controlPoints[1], controlPoints[2], ViewProjectionMatrix, ViewportMatrix, color);
-		// DrawCatmullRomSpline(controlPoints[2], controlPoints[3], ViewProjectionMatrix, ViewportMatrix, color);
+		DrawSplineThroughPoints(controlPoints[0], controlPoints[1], controlPoints[2], controlPoints[3], ViewProjectionMatrix, ViewportMatrix, color);
+	
 
 		///
 		/// ↑描画処理ここまで

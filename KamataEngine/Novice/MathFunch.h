@@ -1269,40 +1269,43 @@ Vector3 CatmullRom(const Vector3& p0, const Vector3& p1, const Vector3& p2, cons
 	return Vector3(x, y, z);
 }
 
-void DrawCatmullRom(const Vector3& pointA, const Vector3& pointB, const Matrix4x4& viewProjectionMatrix, const Matrix4x4& viewPortMatrix, uint32_t color) {
-	// 制御点を計算する
-	Vector3 p0 = pointA; // 始点
-	Vector3 p3 = pointB; // 終点
-
-	// 2点間の距離に基づいて制御点p1とp2を計算
-	float distance = Length(pointA, pointB);
-	Vector3 directionAB = normalize(pointB - pointA);
-
-	// p1を設定
-	Vector3 p1 = pointA + directionAB * (distance * 0.33f);
-
-	// p2を設定
-	Vector3 p2 = pointA + directionAB * (distance * 0.66f);
-
+void DrawSplineThroughPoints(
+    const Vector3& controlPoints0, const Vector3& controlPoints1, const Vector3& controlPoints2, const Vector3& controlPoints3, const Matrix4x4& ViewProjectionMatrix, const Matrix4x4& ViewportMatrix,
+    uint32_t color) {
 	const int numSegments = 100;
 	float step = 1.0f / numSegments;
 
-	Vector3 previousPoint = CatmullRom(p0, p1, p2, p3, 0.0f);
+	std::vector<Vector3> points = {controlPoints0, controlPoints1, controlPoints2, controlPoints3};
 
-	for (int i = 1; i <= numSegments; ++i) {
-		float t = i * step;
-		Vector3 currentPoint = CatmullRom(p0, p1, p2, p3, t);
+	for (size_t i = 0; i < points.size() - 1; ++i) {
+		Vector3 p0 = (i == 0) ? points[i] : points[i - 1];
+		Vector3 p1 = points[i];
+		Vector3 p2 = points[i + 1];
+		Vector3 p3 = (i + 2 == points.size()) ? points[i + 1] : points[i + 2];
 
-		// 座標変換
-		Vector3 transformedPrevious = Transform(previousPoint, viewProjectionMatrix);
-		transformedPrevious = Transform(transformedPrevious, viewPortMatrix);
+		Vector3 previousPoint = CatmullRom(p0, p1, p2, p3, 0.0f);
 
-		Vector3 transformedCurrent = Transform(currentPoint, viewProjectionMatrix);
-		transformedCurrent = Transform(transformedCurrent, viewPortMatrix);
+		for (int j = 1; j <= numSegments; ++j) {
+			float t = j * step;
+			Vector3 currentPoint = CatmullRom(p0, p1, p2, p3, t);
 
-		// 描画（ラインでつなぐ）
-		Novice::DrawLine(static_cast<int>(transformedPrevious.x), static_cast<int>(transformedPrevious.y), static_cast<int>(transformedCurrent.x), static_cast<int>(transformedCurrent.y), color);
+			// 座標変換
+			Vector3 transformedPrevious = Transform(previousPoint, ViewProjectionMatrix);
+			transformedPrevious = Transform(transformedPrevious, ViewportMatrix);
 
-		previousPoint = currentPoint;
+			Vector3 transformedCurrent = Transform(currentPoint, ViewProjectionMatrix);
+			transformedCurrent = Transform(transformedCurrent, ViewportMatrix);
+
+			// 描画（ラインでつなぐ）
+			Novice::DrawLine(static_cast<int>(transformedPrevious.x), static_cast<int>(transformedPrevious.y), static_cast<int>(transformedCurrent.x), static_cast<int>(transformedCurrent.y), color);
+
+			previousPoint = currentPoint;
+		}
 	}
 }
+
+
+
+
+
+
