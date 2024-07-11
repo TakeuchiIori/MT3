@@ -19,16 +19,27 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	Vector2Int clickPosition;
 
 
-	Vector3 controlPoints[4] = { 
-		{-0.8f,0.58f,1.0f}, 
-		{1.76f,1.0f,-0.3f},
-		{0.94f,-0.7f,2.3f},
-		{-0.53f,-0.26f,-0.15f},
+	Vector3 translates[3] = {
+	    {0.2f, 1.0f, 0.0f},
+	    {0.4f, 0.0f, 0.0f},
+	    {0.3f, 0.0f, 0.0f},
+	};
+
+	Vector3 rotates[3] = {
+	    {0.0f, 0.0f, -6.8f},
+	    {0.0f, 0.0f, -1.4f},
+	    {0.0f, 0.0f, 0.0f },
+	};
+
+	Vector3 scales[3] = {
+	    {1.0f, 1.0f, 1.0f},
+	    {1.0f, 1.0f, 1.0f},
+	    {1.0f, 1.0f, 1.0f},
 	};
 
 
 
-	uint32_t color = BLACK;
+	//uint32_t color = BLACK;
 	// ウィンドウの×ボタンが押されるまでループ
 	while (Novice::ProcessMessage() == 0) {
 		// フレームの開始
@@ -48,7 +59,39 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		Matrix4x4 ViewportMatrix = MakeViewportMatrix(0, 0, float(kWindowWidth), float(kWindowHeight), 0.0f, 1.0f);
 		CameraMove(cameraRotate, cameraTranslate, clickPosition, keys, preKeys);
 
+		
+		Matrix4x4 shoulderScaleMatrix = MakeScaleMatrix(scales[0]);
+		Matrix4x4 shoulderRotateMatrix = MakeRotateMatrixXYZ(rotates[0]);
+		Matrix4x4 shoulderTranslateMatrix = MakeTranslateMatrix(translates[0]);
+		Matrix4x4 shoulderWorldMatrix = Multiply(shoulderScaleMatrix, Multiply(shoulderRotateMatrix, shoulderTranslateMatrix));
 
+		// ひじのワールド変換行列を計算
+		Matrix4x4 elbowScaleMatrix = MakeScaleMatrix(scales[1]);
+		Matrix4x4 elbowRotateMatrix = MakeRotateMatrixXYZ(rotates[1]);
+		Matrix4x4 elbowTranslateMatrix = MakeTranslateMatrix(translates[1]);
+		Matrix4x4 elbowLocalMatrix = Multiply(elbowScaleMatrix, Multiply(elbowRotateMatrix, elbowTranslateMatrix));
+		Matrix4x4 elbowWorldMatrix = Multiply(elbowLocalMatrix, shoulderWorldMatrix);
+
+		// 手のワールド変換行列を計算
+		Matrix4x4 handScaleMatrix = MakeScaleMatrix(scales[2]);
+		Matrix4x4 handRotateMatrix = MakeRotateMatrixXYZ(rotates[2]);
+		Matrix4x4 handTranslateMatrix = MakeTranslateMatrix(translates[2]);
+		Matrix4x4 handLocalMatrix = Multiply(handScaleMatrix, Multiply(handRotateMatrix, handTranslateMatrix));
+		Matrix4x4 handWorldMatrix = Multiply(handLocalMatrix, elbowWorldMatrix);
+
+		// 肩、ひじ、手の球を定義
+		Sphere shoulderSphere{
+		    {shoulderWorldMatrix.m[3][0], shoulderWorldMatrix.m[3][1], shoulderWorldMatrix.m[3][2]},
+            0.1f
+        };
+		Sphere elbowSphere{
+		    {elbowWorldMatrix.m[3][0], elbowWorldMatrix.m[3][1], elbowWorldMatrix.m[3][2]},
+            0.1f
+        };
+		Sphere handSphere{
+		    {handWorldMatrix.m[3][0], handWorldMatrix.m[3][1], handWorldMatrix.m[3][2]},
+            0.1f
+        };
 
 		///
 		/// ↑更新処理ここまで
@@ -60,21 +103,39 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		
 		// ImGui
 		ImGui::Begin("Window");
-		ImGui::DragFloat3("controlPoints[0]", &controlPoints[0].x, 0.01f);
-		ImGui::DragFloat3("controlPoints[1]", &controlPoints[1].x, 0.01f);
-		ImGui::DragFloat3("controlPoints[2]", &controlPoints[2].x, 0.01f);
-		ImGui::DragFloat3("controlPoints[3]", &controlPoints[3].x, 0.01f);
+		// 個別にSliderを配置
+		ImGui::SliderFloat3("Translate 0", &translates[0].x, -2.0f, 2.0f);
+		ImGui::SliderFloat3("Rotate 0", &rotates[0].x, -10.0f, 10.0f);
+		ImGui::SliderFloat3("Scale 0", &scales[0].x, 0.1f, 10.0f);
+
+		ImGui::SliderFloat3("Translate 1", &translates[1].x, -2.0f, 2.0f);
+		ImGui::SliderFloat3("Rotate 1", &rotates[1].x, -10.0f, 10.0f);
+		ImGui::SliderFloat3("Scale 1", &scales[1].x, 0.1f, 10.0f);
+
+		ImGui::SliderFloat3("Translate 2", &translates[2].x, -2.0f, 2.0f);
+		ImGui::SliderFloat3("Rotate 2", &rotates[2].x, -10.0f, 10.0f);
+		ImGui::SliderFloat3("Scale 2", &scales[2].x, 0.1f, 10.0f);
+
 		ImGui::End();
 		// 線分の両端をスクリーン座標系まで変換
 		DrawGrid(ViewProjectionMatrix, ViewportMatrix);
-		// 線の描画
-		/*Vector3 start = Transform(Transform(segment.origin, ViewProjectionMatrix), ViewportMatrix);
-		Vector3 end = Transform(Transform(Add(segment.origin, segment.diff), ViewProjectionMatrix), ViewportMatrix);
-		Novice::DrawLine((int)start.x, (int)start.y, (int)end.x, (int)end.y, BLACK);*/
-		DrawControlPoints(controlPoints[0], controlPoints[1], controlPoints[2], controlPoints[3], ViewProjectionMatrix, ViewportMatrix);
-		DrawCatmullRom(controlPoints[0], controlPoints[1], ViewProjectionMatrix, ViewportMatrix, color);
-		//DrawCatmullRomSpline(controlPoints[1], controlPoints[2], ViewProjectionMatrix, ViewportMatrix, color);
-		// DrawCatmullRomSpline(controlPoints[2], controlPoints[3], ViewProjectionMatrix, ViewportMatrix, color);
+
+		DrawSphere(shoulderSphere, ViewProjectionMatrix, ViewportMatrix, RED);
+		DrawSphere(elbowSphere, ViewProjectionMatrix, ViewportMatrix, BLUE);
+		DrawSphere(handSphere, ViewProjectionMatrix, ViewportMatrix, GREEN);
+		Vector3 sphereCenters[3] = {
+		    {shoulderSphere.center.x, shoulderSphere.center.y, shoulderSphere.center.z},
+		    {elbowSphere.center.x,    elbowSphere.center.y,    elbowSphere.center.z   },
+		    {handSphere.center.x,     handSphere.center.y,     handSphere.center.z    },
+		};
+
+		for (int i = 0; i < 2; ++i) {
+			Vector3 start = Transform(sphereCenters[i], ViewProjectionMatrix);
+			start = Transform(start, ViewportMatrix);
+			Vector3 end = Transform(sphereCenters[i + 1], ViewProjectionMatrix);
+			end = Transform(end, ViewportMatrix);
+			Novice::DrawLine(int(start.x), int(start.y), int(end.x), int(end.y), BLACK);
+		}
 
 		///
 		/// ↑描画処理ここまで

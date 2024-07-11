@@ -477,6 +477,7 @@ Matrix4x4 MakeAffineMatrix(const Vector3& scale, const Vector3& rotate, const Ve
 	return result;
 }
 
+
 //=============================12. レンタリングパイプラインVer2=============================//
 // 1. 透視投影行列
 Matrix4x4 MakePerspectiveFovMatrix(float FovY, float aspectRatio, float nearClip, float farClip) {
@@ -611,6 +612,8 @@ void DrawSphere(const Sphere& sphere, const Matrix4x4& viewProjectionMatrix, con
 		}
 	}
 }
+
+
 //--------------------- 平面の描画 ---------------------//
 Vector3 Perpendicual(const Vector3& vector) {
 	if (vector.x != 0.0f || vector.y != 0.0f) {
@@ -1251,6 +1254,9 @@ void DrawBezier(const Vector3& controlPoint0, const Vector3& controlPoint1, cons
 	DrawControlPoints(controlPoint0, controlPoint1, controlPoint2, viewProjectionMatrix, viewPortMatrix);
 	DrawBezierCurve(controlPoint0, controlPoint1, controlPoint2, viewProjectionMatrix, viewPortMatrix, color);
 }
+
+
+
 
 //============================================= スプライン曲線 =============================================//
 Vector3 CatmullRom(const Vector3& p0, const Vector3& p1, const Vector3& p2, const Vector3& p3, float t) {
