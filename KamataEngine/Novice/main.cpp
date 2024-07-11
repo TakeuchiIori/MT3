@@ -19,10 +19,11 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	Vector2Int clickPosition;
 
 
-	Vector3 controlPoints[3] = { 
+	Vector3 controlPoints[4] = { 
 		{-0.8f,0.58f,1.0f}, 
 		{1.76f,1.0f,-0.3f},
 		{0.94f,-0.7f,2.3f},
+		{-0.53f,-0.26f,-0.15f},
 	};
 
 
@@ -62,6 +63,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		ImGui::DragFloat3("controlPoints[0]", &controlPoints[0].x, 0.01f);
 		ImGui::DragFloat3("controlPoints[1]", &controlPoints[1].x, 0.01f);
 		ImGui::DragFloat3("controlPoints[2]", &controlPoints[2].x, 0.01f);
+		ImGui::DragFloat3("controlPoints[3]", &controlPoints[3].x, 0.01f);
 		ImGui::End();
 		// 線分の両端をスクリーン座標系まで変換
 		DrawGrid(ViewProjectionMatrix, ViewportMatrix);
@@ -69,7 +71,10 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		/*Vector3 start = Transform(Transform(segment.origin, ViewProjectionMatrix), ViewportMatrix);
 		Vector3 end = Transform(Transform(Add(segment.origin, segment.diff), ViewProjectionMatrix), ViewportMatrix);
 		Novice::DrawLine((int)start.x, (int)start.y, (int)end.x, (int)end.y, BLACK);*/
-		DrawBezier(controlPoints[0], controlPoints[1], controlPoints[2], ViewProjectionMatrix, ViewportMatrix, color);
+		DrawControlPoints(controlPoints[0], controlPoints[1], controlPoints[2], controlPoints[3], ViewProjectionMatrix, ViewportMatrix);
+		DrawCatmullRom(controlPoints[0], controlPoints[1], ViewProjectionMatrix, ViewportMatrix, color);
+		//DrawCatmullRomSpline(controlPoints[1], controlPoints[2], ViewProjectionMatrix, ViewportMatrix, color);
+		// DrawCatmullRomSpline(controlPoints[2], controlPoints[3], ViewProjectionMatrix, ViewportMatrix, color);
 
 		///
 		/// ↑描画処理ここまで

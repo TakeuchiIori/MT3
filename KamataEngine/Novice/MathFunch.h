@@ -1173,6 +1173,7 @@ void VectorScreenPrintf(int x, int y, const Vector3& vector, const char* label) 
 	Novice::ScreenPrintf(x + kColumnWidth * 2, y, "%.02f", vector.z);
 	Novice::ScreenPrintf(x + kColumnWidth * 3, y, "%s", label);
 }
+//============================================= ベジエ曲線 =============================================//
 Vector3 Lerp(const Vector3& a, const Vector3& b, float t) {
 	Vector3 ans;
 	ans.x = t * a.x + (1.0f - t) * b.x;
@@ -1225,7 +1226,83 @@ void DrawControlPoints(const Vector3& controlPoint0, const Vector3& controlPoint
 	Novice::DrawEllipse(static_cast<int>(transformedPoint1.x), static_cast<int>(transformedPoint1.y), 3, 3, 0.0f, BLUE, kFillModeSolid);
 	Novice::DrawEllipse(static_cast<int>(transformedPoint2.x), static_cast<int>(transformedPoint2.y), 3, 3, 0.0f, BLUE, kFillModeSolid);
 }
+void DrawControlPoints(
+    const Vector3& controlPoint0, const Vector3& controlPoint1, const Vector3& controlPoint2, const Vector3& controlPoint3,const Matrix4x4& viewProjectionMatrix, const Matrix4x4& viewPortMatrix) {
+	// 変換
+	Vector3 transformedPoint0 = Transform(controlPoint0, viewProjectionMatrix);
+	transformedPoint0 = Transform(transformedPoint0, viewPortMatrix);
+
+	Vector3 transformedPoint1 = Transform(controlPoint1, viewProjectionMatrix);
+	transformedPoint1 = Transform(transformedPoint1, viewPortMatrix);
+
+	Vector3 transformedPoint2 = Transform(controlPoint2, viewProjectionMatrix);
+	transformedPoint2 = Transform(transformedPoint2, viewPortMatrix);
+
+	Vector3 transformedPoint3 = Transform(controlPoint3, viewProjectionMatrix);
+	transformedPoint3 = Transform(transformedPoint3, viewPortMatrix);
+
+	// 描画
+	Novice::DrawEllipse(static_cast<int>(transformedPoint0.x), static_cast<int>(transformedPoint0.y), 3, 3, 0.0f, BLUE, kFillModeSolid);
+	Novice::DrawEllipse(static_cast<int>(transformedPoint1.x), static_cast<int>(transformedPoint1.y), 3, 3, 0.0f, BLUE, kFillModeSolid);
+	Novice::DrawEllipse(static_cast<int>(transformedPoint2.x), static_cast<int>(transformedPoint2.y), 3, 3, 0.0f, BLUE, kFillModeSolid);
+	Novice::DrawEllipse(static_cast<int>(transformedPoint3.x), static_cast<int>(transformedPoint3.y), 3, 3, 0.0f, BLUE, kFillModeSolid);
+}
 void DrawBezier(const Vector3& controlPoint0, const Vector3& controlPoint1, const Vector3& controlPoint2, const Matrix4x4& viewProjectionMatrix, const Matrix4x4& viewPortMatrix, uint32_t color) {
 	DrawControlPoints(controlPoint0, controlPoint1, controlPoint2, viewProjectionMatrix, viewPortMatrix);
 	DrawBezierCurve(controlPoint0, controlPoint1, controlPoint2, viewProjectionMatrix, viewPortMatrix, color);
+}
+
+//============================================= スプライン曲線 =============================================//
+Vector3 CatmullRom(const Vector3& p0, const Vector3& p1, const Vector3& p2, const Vector3& p3, float t) {
+	float t2 = t * t;
+	float t3 = t2 * t;
+
+	// X軸成分の計算
+	float x = 0.5f * ((2.0f * p1.x) + (-p0.x + p2.x) * t + (2.0f * p0.x - 5.0f * p1.x + 4.0f * p2.x - p3.x) * t2 + (-p0.x + 3.0f * p1.x - 3.0f * p2.x + p3.x) * t3);
+
+	// Y軸成分の計算
+	float y = 0.5f * ((2.0f * p1.y) + (-p0.y + p2.y) * t + (2.0f * p0.y - 5.0f * p1.y + 4.0f * p2.y - p3.y) * t2 + (-p0.y + 3.0f * p1.y - 3.0f * p2.y + p3.y) * t3);
+
+	// Z軸成分の計算
+	float z = 0.5f * ((2.0f * p1.z) + (-p0.z + p2.z) * t + (2.0f * p0.z - 5.0f * p1.z + 4.0f * p2.z - p3.z) * t2 + (-p0.z + 3.0f * p1.z - 3.0f * p2.z + p3.z) * t3);
+
+	return Vector3(x, y, z);
+}
+
+void DrawCatmullRom(const Vector3& pointA, const Vector3& pointB, const Matrix4x4& viewProjectionMatrix, const Matrix4x4& viewPortMatrix, uint32_t color) {
+	// 制御点を計算する
+	Vector3 p0 = pointA; // 始点
+	Vector3 p3 = pointB; // 終点
+
+	// 2点間の距離に基づいて制御点p1とp2を計算
+	float distance = Length(pointA, pointB);
+	Vector3 directionAB = normalize(pointB - pointA);
+
+	// p1を設定
+	Vector3 p1 = pointA + directionAB * (distance * 0.33f);
+
+	// p2を設定
+	Vector3 p2 = pointA + directionAB * (distance * 0.66f);
+
+	const int numSegments = 100;
+	float step = 1.0f / numSegments;
+
+	Vector3 previousPoint = CatmullRom(p0, p1, p2, p3, 0.0f);
+
+	for (int i = 1; i <= numSegments; ++i) {
+		float t = i * step;
+		Vector3 currentPoint = CatmullRom(p0, p1, p2, p3, t);
+
+		// 座標変換
+		Vector3 transformedPrevious = Transform(previousPoint, viewProjectionMatrix);
+		transformedPrevious = Transform(transformedPrevious, viewPortMatrix);
+
+		Vector3 transformedCurrent = Transform(currentPoint, viewProjectionMatrix);
+		transformedCurrent = Transform(transformedCurrent, viewPortMatrix);
+
+		// 描画（ラインでつなぐ）
+		Novice::DrawLine(static_cast<int>(transformedPrevious.x), static_cast<int>(transformedPrevious.y), static_cast<int>(transformedCurrent.x), static_cast<int>(transformedCurrent.y), color);
+
+		previousPoint = currentPoint;
+	}
 }
