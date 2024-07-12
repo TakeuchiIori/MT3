@@ -4,6 +4,14 @@ const char kWindowTitle[] = "LE2B_14_タケウチ_イオリ";
 
 int kWindowWidth = 1280;
 int kWindowHeight = 720;
+Vector3 Project(const Vector3& vec, const Matrix4x4& mat) {
+	Vector3 result;
+	float w = vec.x * mat.m[0][3] + vec.y * mat.m[1][3] + vec.z * mat.m[2][3] + mat.m[3][3];
+	result.x = (vec.x * mat.m[0][0] + vec.y * mat.m[1][0] + vec.z * mat.m[2][0] + mat.m[3][0]) / w;
+	result.y = (vec.x * mat.m[0][1] + vec.y * mat.m[1][1] + vec.z * mat.m[2][1] + mat.m[3][1]) / w;
+	result.z = (vec.x * mat.m[0][2] + vec.y * mat.m[1][2] + vec.z * mat.m[2][2] + mat.m[3][2]) / w;
+	return result;
+}
 // Windowsアプリでのエントリーポイント(main関数)
 int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
@@ -90,10 +98,18 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
 		DrawSphere(ball, ViewProjectionMatrix, ViewportMatrix);
 		
-		Vector3 screenAnchor = Multiply(spring.anchor, ViewProjectionMatrix);
-		Vector3 screenBallPos = Multiply(ball.position, ViewProjectionMatrix);
+	// 3D座標を2Dスクリーン座標に変換する関数
+
+
+		// 描画処理
+	
+		Matrix4x4 VPMatrix = Multiply(ViewProjectionMatrix, ViewportMatrix);
+
+		Vector3 screenAnchor = Project(spring.anchor, VPMatrix);
+		Vector3 screenBallPos = Project(ball.position, VPMatrix);
 
 		Novice::DrawLine((int)screenAnchor.x, (int)screenAnchor.y, (int)screenBallPos.x, (int)screenBallPos.y, WHITE);
+
 
 		///
 		/// ↑描画処理ここまで
