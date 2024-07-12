@@ -47,7 +47,21 @@ struct OBB {
 	Vector3 size;
 };
 
+struct Spring {
+	Vector3 anchor;
+	float naturalLength;
+	float stiffness;
+};
 
+struct Ball {
+	Vector3 position;
+	Vector3 velocity;
+	Vector3 acceleration;
+	float mass;
+	float rasius;
+	uint32_t color;
+
+};
 
     // Vector3 : 加算
 Vector3 Add(const Vector3& v1, const Vector3& v2) {
@@ -74,6 +88,41 @@ Vector3 Cross(const Vector3& v1, const Vector3& v2) {
 
 	return result;
 }
+// 加算
+Vector3 Add(Vector3 vec1, Vector3 vec2) {
+	Vector3 result;
+	result.x = vec1.x + vec2.x;
+	result.y = vec1.y + vec2.y;
+	result.z = vec1.z + vec2.z;
+	return result;
+}
+
+// 減算
+Vector3 Subtract(Vector3 vec1, Vector3 vec2) {
+	Vector3 result;
+	result.x = vec1.x - vec2.x;
+	result.y = vec1.y - vec2.y;
+	result.z = vec1.z - vec2.z;
+	return result;
+}
+
+Vector3 Multiply(float scalar, Vector3 vec) {
+	Vector3 result;
+	result.x = scalar * vec.x;
+	result.y = scalar * vec.y;
+	result.z = scalar * vec.z;
+	return result;
+}
+// スカラー除算
+Vector3 Divide(Vector3 vec, float scalar) {
+	Vector3 result;
+	result.x = vec.x / scalar;
+	result.y = vec.y / scalar;
+	result.z = vec.z / scalar;
+	return result;
+}
+
+
 
 // ベクトルの内積を計算する関数
 float Dot(const Vector3& a, const Vector3& b) { return a.x * b.x + a.y * b.y + a.z * b.z; }
@@ -86,10 +135,10 @@ Vector3 subtract(const Vector3& a, const Vector3& b) { return {a.x - b.x, a.y - 
 // ベクトルの掛け算を行う関数
 Vector3 multiply(const Vector3& v, float scalar) { return {v.x * scalar, v.y * scalar, v.z * scalar}; }
 // ベクトルの大きさを計算する関数
-float magnitude(const Vector3& v) { return std::sqrt(magnitudeSquared(v)); }
+float Length(const Vector3& v) { return std::sqrt(magnitudeSquared(v)); }
 // ベクトルの正規化を行う関数
-Vector3 normalize(const Vector3& v) {
-	float mag = magnitude(v);
+Vector3 Normalize(const Vector3& v) {
+	float mag = Length(v);
 	return {v.x / mag, v.y / mag, v.z / mag};
 }
 // ベクトル間の距離を計算する関数
@@ -631,7 +680,7 @@ Vector3 Perpendicual(const Vector3& vector) {
 void DrawPlane(const Plane& plane, const Matrix4x4& viewProjectionMatrix, const Matrix4x4& viewportMatrix, uint32_t color) {
     Vector3 center = multiply(plane.normal,plane.Length); // 1. 中心点を決める
 	Vector3 perpendiculars[4];
-	perpendiculars[0] = normalize(Perpendicual(plane.normal)); // 2. 法線と垂直なベクトルを一つ求める
+	perpendiculars[0] = Normalize(Perpendicual(plane.normal)); // 2. 法線と垂直なベクトルを一つ求める
 	perpendiculars[1] = {-perpendiculars[0].x, -perpendiculars[0].y, -perpendiculars[0].z}; // 3. 2の逆ベクトルを求める
 	perpendiculars[2] = Cross(plane.normal, perpendiculars[0]); // 4. 2と法線とのクロス積を求める
 	perpendiculars[3] = {-perpendiculars[2].x, -perpendiculars[2].y, -perpendiculars[2].z}; // 5. 4の逆ベクトルを求める
@@ -1289,7 +1338,7 @@ void DrawCatmullRom(const Vector3& pointA, const Vector3& pointB, const Matrix4x
 
 	// 2点間の距離に基づいて制御点p1とp2を計算
 	float distance = Length(pointA, pointB);
-	Vector3 directionAB = normalize(pointB - pointA);
+	Vector3 directionAB = Normalize(pointB - pointA);
 
 	// p1を設定
 	Vector3 p1 = pointA + directionAB * (distance * 0.33f);
