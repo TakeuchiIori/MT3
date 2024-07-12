@@ -28,10 +28,12 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	Ball ball{};
 	ball.position = {1.2f, 0.0f, 0.0f};
 	ball.mass = 2.0f;
-	ball.rasius = 0.05f;
+	ball.radius = 0.05f;
 	ball.color = BLUE;
 
 	float deltaTime = 1.0f / 60.0f;
+
+	bool Update = false;
 
 	//uint32_t color = BLACK;
 	// ウィンドウの×ボタンが押されるまでループ
@@ -54,14 +56,20 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		CameraMove(cameraRotate, cameraTranslate, clickPosition, keys, preKeys);
 
 		/*=============================================================================*/
+		if (Update) {
+			Vector3 diff = ball.position - spring.anchor;
+			float length = Length(diff);
+			if (length != 0.0f) {
+				Vector3 direction = Normalize(diff);
+				Vector3 restPosition = spring.anchor + direction * spring.naturalLength;
+				Vector3 displacement = (ball.position - restPosition) * length;
+				Vector3 restoringForce = Multiply(-spring.stiffness, displacement);
+				Vector3 force = restoringForce;
+				ball.acceleration = force / ball.mass;
+			}
 
-		Vector3 diff = ball.position - spring.anchor;
-		float length = Length(diff);
-		if (length != 0.0f) {
-			Vector3 direction = Normalize(diff);
-			Vector3 restPosition = spring.anchor + direction * spring.naturalLength;
-			Vector3 displacement = (ball.position - restPosition) * length;
-			Vector3 restoringForce = Multiply(-spring.stiffness, displacement);
+			ball.velocity += ball.acceleration * deltaTime;
+			ball.position += ball.velocity * deltaTime;
 		}
 
 		///
@@ -73,45 +81,19 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		///
 		
 		// ImGui
-		Vector3 a{0.2f, 1.0f, 0.0f};
-		Vector3 b{2.4f, 3.1f, 1.2f};
-		Vector3 c = a + b;
-		Vector3 d = a - b;
-		Vector3 e = a * 2.4f;
-		Vector3 rotate{0.4f, 1.43f, -0.8f};
-		Matrix4x4 rotateXMatrix = MakeRotateMatrixX(rotate.x);
-		Matrix4x4 rotateYMatrix = MakeRotateMatrixY(rotate.y);
-		Matrix4x4 rotateZMatrix = MakeRotateMatrixZ(rotate.z);
-		Matrix4x4 rotateMatrix = rotateXMatrix * rotateYMatrix * rotateZMatrix;
-
+		
 		ImGui::Begin("Window");
-		ImGui::Text("c: %f, %f, %f", c.x, c.y, c.z);
-		ImGui::Text("d: %f, %f, %f", d.x, d.y, d.z);
-		ImGui::Text("e: %f, %f, %f", e.x, e.y, e.z);
-		ImGui::Text(
-		    "matrix: \n%f, %f, %f, %f\n%f, %f, %f, %f \n%f, %f, %f, %f \n%f, %f, %f, %f\n", rotateMatrix.m[0][0], rotateMatrix.m[0][1], rotateMatrix.m[0][2], rotateMatrix.m[0][3],
-		    rotateMatrix.m[1][0], rotateMatrix.m[1][1], rotateMatrix.m[1][2], rotateMatrix.m[1][3], rotateMatrix.m[2][0], rotateMatrix.m[2][1], rotateMatrix.m[2][2], rotateMatrix.m[2][3],
-		    rotateMatrix.m[3][0], rotateMatrix.m[3][1], rotateMatrix.m[3][2], rotateMatrix.m[3][3]);
+		ImGui::Checkbox("Update", &Update);
 		ImGui::End();
 		// 線分の両端をスクリーン座標系まで変換
-		//DrawGrid(ViewProjectionMatrix, ViewportMatrix);
+		DrawGrid(ViewProjectionMatrix, ViewportMatrix);
 
-		//DrawSphere(shoulderSphere, ViewProjectionMatrix, ViewportMatrix, RED);
-		//DrawSphere(elbowSphere, ViewProjectionMatrix, ViewportMatrix, BLUE);
-		//DrawSphere(handSphere, ViewProjectionMatrix, ViewportMatrix, GREEN);
-		//Vector3 sphereCenters[3] = {
-		//    {shoulderSphere.center.x, shoulderSphere.center.y, shoulderSphere.center.z},
-		//    {elbowSphere.center.x,    elbowSphere.center.y,    elbowSphere.center.z   },
-		//    {handSphere.center.x,     handSphere.center.y,     handSphere.center.z    },
-		//};
+		DrawSphere(ball, ViewProjectionMatrix, ViewportMatrix);
+		
+		Vector3 screenAnchor = Multiply(spring.anchor, ViewProjectionMatrix);
+		Vector3 screenBallPos = Multiply(ball.position, ViewProjectionMatrix);
 
-		//for (int i = 0; i < 2; ++i) {
-		//	Vector3 start = Transform(sphereCenters[i], ViewProjectionMatrix);
-		//	start = Transform(start, ViewportMatrix);
-		//	Vector3 end = Transform(sphereCenters[i + 1], ViewProjectionMatrix);
-		//	end = Transform(end, ViewportMatrix);
-		//	Novice::DrawLine(int(start.x), int(start.y), int(end.x), int(end.y), BLACK);
-		//}
+		Novice::DrawLine((int)screenAnchor.x, (int)screenAnchor.y, (int)screenBallPos.x, (int)screenBallPos.y, WHITE);
 
 		///
 		/// ↑描画処理ここまで

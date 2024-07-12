@@ -58,13 +58,13 @@ struct Ball {
 	Vector3 velocity;
 	Vector3 acceleration;
 	float mass;
-	float rasius;
+	float radius;
 	uint32_t color;
 
 };
 
     // Vector3 : 加算
-Vector3 Add(const Vector3& v1, const Vector3& v2) {
+Vector3 add(const Vector3& v1, const Vector3& v2) {
 	Vector3 result;
 	result.x = v1.x + v2.x;
 	result.y = v1.y + v2.y;
@@ -528,6 +528,21 @@ Matrix4x4 MakeAffineMatrix(const Vector3& scale, const Vector3& rotate, const Ve
 
 	return result;
 }
+Vector3 Multiply(const Vector3& vec, const Matrix4x4& mat) {
+	Vector3 result;
+	result.x = vec.x * mat.m[0][0] + vec.y * mat.m[1][0] + vec.z * mat.m[2][0] + mat.m[3][0];
+	result.y = vec.x * mat.m[0][1] + vec.y * mat.m[1][1] + vec.z * mat.m[2][1] + mat.m[3][1];
+	result.z = vec.x * mat.m[0][2] + vec.y * mat.m[1][2] + vec.z * mat.m[2][2] + mat.m[3][2];
+	float w = vec.x * mat.m[0][3] + vec.y * mat.m[1][3] + vec.z * mat.m[2][3] + mat.m[3][3];
+
+	if (w != 0.0f) {
+		result.x /= w;
+		result.y /= w;
+		result.z /= w;
+	}
+
+	return result;
+}
 
 
 Matrix4x4 operator+(const Matrix4x4& m1, const Matrix4x4& m2) { return Add(m1, m2); }
@@ -665,6 +680,45 @@ void DrawSphere(const Sphere& sphere, const Matrix4x4& viewProjectionMatrix, con
 			// 描画
 			Novice::DrawLine(int(Start.x), int(Start.y), int(End1.x), int(End1.y), color);
 			Novice::DrawLine(int(Start.x), int(Start.y), int(End2.x), int(End2.y), color);
+		}
+	}
+}
+void DrawSphere(const Ball& ball, const Matrix4x4& viewProjectionMatrix, const Matrix4x4& viewportMarix) {
+	const uint32_t kSubdivision = 10;                          // 分割数
+	const float kLonEvery = 2.0f * float(M_PI) / kSubdivision; // 経度分割1つ分の角度
+	const float kLatEvery = float(M_PI) / kSubdivision;        // 緯度分割1つ分の角度
+	// 緯度の方向に分割　-π/2 ～ π/2
+	for (uint32_t latIndex = 0; latIndex < kSubdivision; ++latIndex) {
+		float lat = -float(M_PI) / 2.0f + kLatEvery * latIndex; // 現在の緯度
+		// 経度の方向に分割 0 ～ 2π
+		for (uint32_t lonIndex = 0; lonIndex < kSubdivision; ++lonIndex) {
+			float lon = lonIndex * kLonEvery; // 現在の経度
+			// 現在の点を求める
+			float x1 = ball.position.x + ball.radius * std::cosf(lat) * std::cosf(lon);
+			float y1 = ball.position.y + ball.radius * std::sinf(lat);
+			float z1 = ball.position.z + ball.radius * std::cosf(lat) * std::sinf(lon);
+			// 次の点を求める（経度方向）
+			float x2 = ball.position.x + ball.radius * std::cosf(lat) * std::cosf(lon + kLonEvery);
+			float y2 = ball.position.y + ball.radius * std::sinf(lat);
+			float z2 = ball.position.z + ball.radius * std::cosf(lat) * std::sinf(lon + kLonEvery);
+			// 次の点を求める（緯度方向）
+			float x3 = ball.position.x + ball.radius * std::cosf(lat + kLatEvery) * std::cosf(lon);
+			float y3 = ball.position.y + ball.radius * std::sinf(lat + kLatEvery);
+			float z3 = ball.position.z + ball.radius * std::cosf(lat + kLatEvery) * std::sinf(lon);
+			// 3D座標をVector3にセット
+			Vector3 Start(x1, y1, z1);
+			Vector3 End1(x2, y2, z2);
+			Vector3 End2(x3, y3, z3);
+			// 座標変換を行う
+			Start = Transform(Start, viewProjectionMatrix);
+			Start = Transform(Start, viewportMarix);
+			End1 = Transform(End1, viewProjectionMatrix);
+			End1 = Transform(End1, viewportMarix);
+			End2 = Transform(End2, viewProjectionMatrix);
+			End2 = Transform(End2, viewportMarix);
+			// 描画
+			Novice::DrawLine(int(Start.x), int(Start.y), int(End1.x), int(End1.y), ball.color);
+			Novice::DrawLine(int(Start.x), int(Start.y), int(End2.x), int(End2.y), ball.color);
 		}
 	}
 }
