@@ -26,8 +26,8 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	Vector3 cameraPosition{0.0f, 1.0f, -4.0f};
 	Vector2Int clickPosition;
 
-	/*====================================================*/
-	
+    /*====================================================*/
+
 	Spring spring{};
 	spring.anchor = {0.0f, 0.0f, 0.0f};
 	spring.naturalLength = 1.0f;
@@ -36,14 +36,16 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	Ball ball{};
 	ball.position = {1.2f, 0.0f, 0.0f};
 	ball.mass = 2.0f;
-	ball.radius = 0.05f;
+	ball.radius = 0.08f;
 	ball.color = BLUE;
 
 	float deltaTime = 1.0f / 60.0f;
 
 	bool Update = false;
 
-	//uint32_t color = BLACK;
+	float angularVelocity = 3.14f;
+	float angle = 0.0f;
+
 	// ウィンドウの×ボタンが押されるまでループ
 	while (Novice::ProcessMessage() == 0) {
 		// フレームの開始
@@ -53,8 +55,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		Novice::GetHitKeyStateAll(keys);
 		///
 		/// ↓更新処理ここから
-		/// 
-	
+		///
 
 		Matrix4x4 CameraMatrix = MakeAffineMatrix({1.0f, 1.0f, 1.0f}, cameraRotate, Add(cameraPosition, cameraTranslate));
 		Matrix4x4 ViewMatrix = Inverse(CameraMatrix);
@@ -64,21 +65,22 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		CameraMove(cameraRotate, cameraTranslate, clickPosition, keys, preKeys);
 
 		/*=============================================================================*/
+		// 更新処理
 		if (Update) {
-			Vector3 diff = ball.position - spring.anchor;
-			float length = Length(diff);
-			if (length != 0.0f) {
-				Vector3 direction = Normalize(diff);
-				Vector3 restPosition = spring.anchor + direction * spring.naturalLength;
-				Vector3 displacement = (ball.position - restPosition) * length;
-				Vector3 restoringForce = Multiply(-spring.stiffness, displacement);
-				Vector3 force = restoringForce;
-				ball.acceleration = force / ball.mass;
-			}
+			// 角速度を用いて角度を更新
+			angle += angularVelocity * deltaTime;
 
-			ball.velocity += ball.acceleration * deltaTime;
-			ball.position += ball.velocity * deltaTime;
+			float radius = 0.8f;
+			// 等速円運動の公式を用いて新しいボールの位置を計算
+			ball.position.x = spring.anchor.x + cos(angle) * radius;
+			ball.position.y = spring.anchor.y + sin(angle) * radius;
+
+			// ボールの速度と加速度を更新
+			ball.velocity = {-angularVelocity * sin(angle), angularVelocity * cos(angle), 0.0f};
+			ball.acceleration = {-angularVelocity * angularVelocity * cos(angle), -angularVelocity * angularVelocity * sin(angle), 0.0f};
 		}
+
+
 
 		///
 		/// ↑更新処理ここまで
