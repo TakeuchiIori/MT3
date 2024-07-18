@@ -69,18 +69,16 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
 		/*=============================================================================*/
 		// 更新処理
-
+		
 		if (Update) {
 			pendulum.angularAcceleration = -(9.8f / pendulum.length) * std::sin(pendulum.angle);
 			pendulum.angularVelocity += pendulum.angularAcceleration * deltaTime;
 			pendulum.angle += pendulum.angularVelocity * deltaTime;
-
-			ball.position.x = pendulum.anchor.x + sin(pendulum.angle) * pendulum.length;
-			ball.position.y = pendulum.anchor.y - cos(pendulum.angle) * pendulum.length;
-			ball.position.z = pendulum.anchor.z; // z座標も更新
 		}
 
-
+		ball.position.x = pendulum.anchor.x + sin(pendulum.angle) * pendulum.length;
+		ball.position.y = pendulum.anchor.y - cos(pendulum.angle) * pendulum.length;
+		ball.position.z = pendulum.anchor.z; // z座標も更新
 
 
 
