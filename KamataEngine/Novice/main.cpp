@@ -28,23 +28,19 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
     /*====================================================*/
 
-	Spring spring{};
-	spring.anchor = {0.0f, 0.0f, 0.0f};
-	spring.naturalLength = 1.0f;
-	spring.stiffness = 100.0f;
-
-	Ball ball{};
-	ball.position = {1.2f, 0.0f, 0.0f};
-	ball.mass = 2.0f;
-	ball.radius = 0.08f;
-	ball.color = BLUE;
+	Pendulum pendulum;
+	
+	pendulum.anchor = {0.0f, 1.0f, 0.0f};
+	pendulum.length = 0.8f;
+	pendulum.angle = 0.7f;
+	pendulum.angularVelocity = 0.0f;
+	pendulum.angularAcceleration = 0.0f;
 
 	float deltaTime = 1.0f / 60.0f;
 
 	bool Update = false;
 
-	float angularVelocity = 3.14f;
-	float angle = 0.0f;
+
 
 	// ウィンドウの×ボタンが押されるまでループ
 	while (Novice::ProcessMessage() == 0) {
@@ -67,17 +63,13 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		/*=============================================================================*/
 		// 更新処理
 		if (Update) {
-			// 角速度を用いて角度を更新
-			angle += angularVelocity * deltaTime;
+			pendulum.angularAcceleration = 
+				-(9.8f / pendulum.length) * std::sin(pendulum.angle);
+			pendulum.angularVelocity += pendulum.angularAcceleration * deltaTime;
+			pendulum.angle += pendulum.angularVelocity * deltaTime;
 
-			float radius = spring.naturalLength; // バネの自然長に設定
-			// 等速円運動の公式を用いて新しいボールの位置を計算
-			ball.position.x = spring.anchor.x + cos(angle) * radius;
-			ball.position.y = spring.anchor.y + sin(angle) * radius;
-
-			// ボールの速度と加速度を更新
-			ball.velocity = {-angularVelocity * sin(angle), angularVelocity * cos(angle), 0.0f};
-			ball.acceleration = {-angularVelocity * angularVelocity * cos(angle), -angularVelocity * angularVelocity * sin(angle), 0.0f};
+			
+			
 		}
 
 

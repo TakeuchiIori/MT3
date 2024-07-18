@@ -63,6 +63,14 @@ struct Ball {
 
 };
 
+struct Pendulum {
+	Vector3 anchor;
+	float length;
+	float angle;
+	float angularVelocity;
+	float angularAcceleration;
+};
+
     // Vector3 : 加算
 Vector3 add(const Vector3& v1, const Vector3& v2) {
 	Vector3 result;
@@ -121,6 +129,7 @@ Vector3 Divide(Vector3 vec, float scalar) {
 	result.z = vec.z / scalar;
 	return result;
 }
+
 
 
 
