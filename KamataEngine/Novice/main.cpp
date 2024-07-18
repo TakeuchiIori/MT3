@@ -70,7 +70,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 			// 角速度を用いて角度を更新
 			angle += angularVelocity * deltaTime;
 
-			float radius = 0.8f;
+			float radius = spring.naturalLength; // バネの自然長に設定
 			// 等速円運動の公式を用いて新しいボールの位置を計算
 			ball.position.x = spring.anchor.x + cos(angle) * radius;
 			ball.position.y = spring.anchor.y + sin(angle) * radius;
@@ -79,6 +79,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 			ball.velocity = {-angularVelocity * sin(angle), angularVelocity * cos(angle), 0.0f};
 			ball.acceleration = {-angularVelocity * angularVelocity * cos(angle), -angularVelocity * angularVelocity * sin(angle), 0.0f};
 		}
+
 
 
 
