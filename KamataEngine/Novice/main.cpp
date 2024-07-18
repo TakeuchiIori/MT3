@@ -59,6 +59,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		/// ↓更新処理ここから
 		///
 
+
 		Matrix4x4 CameraMatrix = MakeAffineMatrix({1.0f, 1.0f, 1.0f}, cameraRotate, Add(cameraPosition, cameraTranslate));
 		Matrix4x4 ViewMatrix = Inverse(CameraMatrix);
 		Matrix4x4 ProjectionMatrix = MakePerspectiveFovMatrix(0.45f, float(kWindowWidth) / float(kWindowHeight), 0.1f, 100.0f);
@@ -68,6 +69,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
 		/*=============================================================================*/
 		// 更新処理
+
 		if (Update) {
 			pendulum.angularAcceleration = -(9.8f / pendulum.length) * std::sin(pendulum.angle);
 			pendulum.angularVelocity += pendulum.angularAcceleration * deltaTime;
@@ -111,6 +113,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
 		Vector3 screenAnchor = Project(pendulum.anchor, VPMatrix);
 		Vector3 screenBallPos = Project(ball.position, VPMatrix);
+
 
 		Novice::DrawLine((int)screenAnchor.x, (int)screenAnchor.y, (int)screenBallPos.x, (int)screenBallPos.y, WHITE);
 
