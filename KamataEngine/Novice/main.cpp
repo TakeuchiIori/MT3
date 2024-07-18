@@ -36,6 +36,12 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	pendulum.angularVelocity = 0.0f;
 	pendulum.angularAcceleration = 0.0f;
 
+	Ball ball{};
+	ball.position = {1.2f, 0.0f, 0.0f};
+	ball.mass = 2.0f;
+	ball.radius = 0.08f;
+	ball.color = BLUE;
+
 	float deltaTime = 1.0f / 60.0f;
 
 	bool Update = false;
@@ -63,14 +69,17 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		/*=============================================================================*/
 		// 更新処理
 		if (Update) {
-			pendulum.angularAcceleration = 
-				-(9.8f / pendulum.length) * std::sin(pendulum.angle);
+			pendulum.angularAcceleration = -(9.8f / pendulum.length) * std::sin(pendulum.angle);
 			pendulum.angularVelocity += pendulum.angularAcceleration * deltaTime;
 			pendulum.angle += pendulum.angularVelocity * deltaTime;
 
-			
-			
+			ball.position.x = pendulum.anchor.x + sin(pendulum.angle) * pendulum.length;
+			ball.position.y = pendulum.anchor.y - cos(pendulum.angle) * pendulum.length;
+			ball.position.z = pendulum.anchor.z; // z座標も更新
 		}
+
+
+
 
 
 
@@ -100,7 +109,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	
 		Matrix4x4 VPMatrix = Multiply(ViewProjectionMatrix, ViewportMatrix);
 
-		Vector3 screenAnchor = Project(spring.anchor, VPMatrix);
+		Vector3 screenAnchor = Project(pendulum.anchor, VPMatrix);
 		Vector3 screenBallPos = Project(ball.position, VPMatrix);
 
 		Novice::DrawLine((int)screenAnchor.x, (int)screenAnchor.y, (int)screenBallPos.x, (int)screenBallPos.y, WHITE);
