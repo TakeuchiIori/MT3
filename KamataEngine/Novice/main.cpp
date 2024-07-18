@@ -65,15 +65,16 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		CameraMove(cameraRotate, cameraTranslate, clickPosition, keys, preKeys);
 
 		/*=============================================================================*/
+		// 等速円運動の公式を用いて新しいボールの位置を計算
+		ball.position.x = spring.anchor.x + cos(angle) * spring.naturalLength;
+		ball.position.y = spring.anchor.y + sin(angle) * spring.naturalLength;
 		// 更新処理
 		if (Update) {
 			// 角速度を用いて角度を更新
 			angle += angularVelocity * deltaTime;
 
-			float radius = spring.naturalLength; // バネの自然長に設定
-			// 等速円運動の公式を用いて新しいボールの位置を計算
-			ball.position.x = spring.anchor.x + cos(angle) * radius;
-			ball.position.y = spring.anchor.y + sin(angle) * radius;
+			 // バネの自然長に設定
+		
 
 			// ボールの速度と加速度を更新
 			ball.velocity = {-angularVelocity * sin(angle), angularVelocity * cos(angle), 0.0f};
