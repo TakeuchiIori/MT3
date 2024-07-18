@@ -30,14 +30,17 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	
 	Spring spring{};
 	spring.anchor = {0.0f, 0.0f, 0.0f};
-	spring.naturalLength = 1.0f;
+	spring.naturalLength = 0.7f;
 	spring.stiffness = 100.0f;
+	spring.dampingCoefficient = 2.0f;
 
 	Ball ball{};
-	ball.position = {1.2f, 0.0f, 0.0f};
+	ball.position = {0.8f, 0.4f, 0.0f};
 	ball.mass = 2.0f;
 	ball.radius = 0.05f;
 	ball.color = BLUE;
+
+	const Vector3 kGravity{0.0f, -9.8f, 0.0f};
 
 	float deltaTime = 1.0f / 60.0f;
 
@@ -76,9 +79,19 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 				ball.acceleration = force / ball.mass;
 			}
 
+			// 重力を追加
+			ball.acceleration += kGravity;
+
+			// 抵抗力を追加
+		
+			Vector3 dragForce = Multiply(- spring.dampingCoefficient ,ball.velocity);
+			ball.acceleration += dragForce / ball.mass;
+
 			ball.velocity += ball.acceleration * deltaTime;
 			ball.position += ball.velocity * deltaTime;
 		}
+
+
 
 		///
 		/// ↑更新処理ここまで
