@@ -28,7 +28,7 @@ struct Sphere {
 };
 struct Plane {
 	Vector3 normal; // !<法線
-	float Length; // !<距離
+	float distance; // !<距離
 };
 struct Triangle {
 	Vector3 vertex[3];
@@ -751,7 +751,7 @@ Vector3 Perpendicual(const Vector3& vector) {
 	return {0.0f, -vector.z, vector.y};
 }
 void DrawPlane(const Plane& plane, const Matrix4x4& viewProjectionMatrix, const Matrix4x4& viewportMatrix, uint32_t color) {
-    Vector3 center = multiply(plane.normal,plane.Length); // 1. 中心点を決める
+    Vector3 center = multiply(plane.normal,plane.distance); // 1. 中心点を決める
 	Vector3 perpendiculars[4];
 	perpendiculars[0] = Normalize(Perpendicual(plane.normal)); // 2. 法線と垂直なベクトルを一つ求める
 	perpendiculars[1] = {-perpendiculars[0].x, -perpendiculars[0].y, -perpendiculars[0].z}; // 3. 2の逆ベクトルを求める
@@ -881,11 +881,11 @@ bool IsCollision(const Sphere& s1, const Sphere& s2) {
 }
 //--------------------- 円と平面の当たり判定 ---------------------//
 bool IsCollisionPlane(const Sphere& s1, const Plane& plane) {
-	Vector3 center = multiply(plane.normal, plane.Length);
+	Vector3 center = multiply(plane.normal, plane.distance);
 	// 2つの円の中心間の距離を計算
 	float Length = float(std::sqrt(std::pow(center.x - s1.center.x, 2) + std::pow(center.y - s1.center.y, 2) + std::pow(center.z - s1.center.z, 2)));
 	// 中心間の距離が2つの円の半径の合計よりも小さい場合、衝突しているとみなす
-	if (Length <= (s1.radius + plane.Length)) {
+	if (Length <= (s1.radius + plane.distance)) {
 		return true;
 	} else {
 		return false;
@@ -901,7 +901,7 @@ bool IsCollisionLine(const Segment& line, const Plane& plane) {
 	}
 
 	// t を計算
-	float t = (plane.Length - Dot(line.origin, plane.normal)) / dot;
+	float t = (plane.distance - Dot(line.origin, plane.normal)) / dot;
 
 	// t の値が [0, 1] の範囲内にあるかどうかで判断
 	if (t >= -1.0f && t >= 0.0f && t <= 1.0f ) {

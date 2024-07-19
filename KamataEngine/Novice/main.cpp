@@ -4,14 +4,7 @@ const char kWindowTitle[] = "LE2B_14_タケウチ_イオリ";
 
 int kWindowWidth = 1280;
 int kWindowHeight = 720;
-Vector3 Project(const Vector3& vec, const Matrix4x4& mat) {
-	Vector3 result;
-	float w = vec.x * mat.m[0][3] + vec.y * mat.m[1][3] + vec.z * mat.m[2][3] + mat.m[3][3];
-	result.x = (vec.x * mat.m[0][0] + vec.y * mat.m[1][0] + vec.z * mat.m[2][0] + mat.m[3][0]) / w;
-	result.y = (vec.x * mat.m[0][1] + vec.y * mat.m[1][1] + vec.z * mat.m[2][1] + mat.m[3][1]) / w;
-	result.z = (vec.x * mat.m[0][2] + vec.y * mat.m[1][2] + vec.z * mat.m[2][2] + mat.m[3][2]) / w;
-	return result;
-}
+
 // Windowsアプリでのエントリーポイント(main関数)
 int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
@@ -28,18 +21,20 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
     /*====================================================*/
 
-	Plane plane{1.0f, 0.0f, 1.0f, 0.0f};
+	Plane plane;
+	plane.normal = Normalize({-0.2f, 0.9f, -0.3f});
+	plane.distance = 0.0f;
 
 	Ball ball{};
-	ball.position = {1.2f, 0.0f, 0.0f};
+	ball.position = {0.0f, 1.2f, 0.3f};
 	ball.mass = 2.0f;
-	ball.radius = 0.08f;
+	ball.radius = 0.05f;
 	ball.color = BLUE;
-
-	//float deltaTime = 1.0f / 60.0f;
+	ball.acceleration = {0.0f, -9.8f, 0.0f};
+	float deltaTime = 1.0f / 60.0f;
 
 	bool Update = false;
-
+	float e = 1.0f;
 
 
 	// ウィンドウの×ボタンが押されるまでループ
@@ -59,9 +54,18 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		Matrix4x4 ViewportMatrix = MakeViewportMatrix(0, 0, float(kWindowWidth), float(kWindowHeight), 0.0f, 1.0f);
 		CameraMove(cameraRotate, cameraTranslate, clickPosition, keys, preKeys);
 		/*=============================================================================*/
+
 		// 更新処理
-		if (Update) {
 		
+		if (IsCollisionPlane(Sphere{ball.position, ball.radius}, plane)) {
+			Vector3 reflected = Reflect(ball.velocity, plane.normal);
+			Vector3 projectToNomarl = Project(reflected, plane.normal);
+			Vector3 movingDirection = reflected - projectToNomarl;
+			ball.velocity = projectToNomarl * e + movingDirection;
+		}
+		if (Update) {
+			ball.velocity += ball.acceleration * deltaTime;
+			ball.position += ball.velocity * deltaTime;
 		}
 		
 
