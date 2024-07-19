@@ -29,7 +29,6 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
     /*====================================================*/
 
 	Plane plane{1.0f, 0.0f, 1.0f, 0.0f};
-	
 
 	Ball ball{};
 	ball.position = {1.2f, 0.0f, 0.0f};
@@ -81,6 +80,9 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		// ImGui
 		
 		ImGui::Begin("Window");
+		ImGui::DragFloat3("plane", &plane.normal.x, 0.01f);
+		plane.normal = Normalize(plane.normal);
+		ImGui::DragFloat("planedistance", &plane.distance, 0.01f);
 		ImGui::Checkbox("Update", &Update);
 		ImGui::End();
 		// 線分の両端をスクリーン座標系まで変換
