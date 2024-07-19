@@ -34,7 +34,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	float deltaTime = 1.0f / 60.0f;
 
 	bool Update = false;
-	float e = 1.0f;
+	float e = 0.7f;
 
 
 	// ウィンドウの×ボタンが押されるまでループ
