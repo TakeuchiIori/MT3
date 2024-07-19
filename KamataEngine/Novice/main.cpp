@@ -57,7 +57,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
 		// 更新処理
 		
-		if (IsCollisionPlane(Sphere{ball.position, ball.radius}, plane)) {
+		if (IsCollision(Sphere{ball.position, ball.radius}, plane)) {
 			Vector3 reflected = Reflect(ball.velocity, plane.normal);
 			Vector3 projectToNomarl = Project(reflected, plane.normal);
 			Vector3 movingDirection = reflected - projectToNomarl;
