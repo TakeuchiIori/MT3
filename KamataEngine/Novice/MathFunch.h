@@ -1444,5 +1444,5 @@ void DrawCatmullRom(const Vector3& pointA, const Vector3& pointB, const Matrix4x
 
 // 反射ベクトル
 Vector3 Reflect(const Vector3& input, const Vector3& normal) {
-	 return input - normal * (2.0f * input.dot(normal));
+	 return input - normal * (2.0f * Dot(input,normal));
 }
