@@ -28,13 +28,12 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
     /*====================================================*/
 
-	Pendulum pendulum;
-	
-	pendulum.anchor = {0.0f, 1.0f, 0.0f};
-	pendulum.length = 0.8f;
-	pendulum.angle = 0.7f;
-	pendulum.angularVelocity = 0.0f;
-	pendulum.angularAcceleration = 0.0f;
+	ConicalPendulum conicalPendulum;
+	conicalPendulum.anchor = {0.0f, 1.0f, 0.0f};
+	conicalPendulum.length = 0.8f;
+	conicalPendulum.halfApexAngle = 0.7f;
+	conicalPendulum.angle = 0.0f;
+	conicalPendulum.angularVelocity = 0.0f;
 
 	Ball ball{};
 	ball.position = {1.2f, 0.0f, 0.0f};
@@ -58,27 +57,23 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		///
 		/// ↓更新処理ここから
 		///
-
-
 		Matrix4x4 CameraMatrix = MakeAffineMatrix({1.0f, 1.0f, 1.0f}, cameraRotate, Add(cameraPosition, cameraTranslate));
 		Matrix4x4 ViewMatrix = Inverse(CameraMatrix);
 		Matrix4x4 ProjectionMatrix = MakePerspectiveFovMatrix(0.45f, float(kWindowWidth) / float(kWindowHeight), 0.1f, 100.0f);
 		Matrix4x4 ViewProjectionMatrix = Multiply(ViewMatrix, ProjectionMatrix);
 		Matrix4x4 ViewportMatrix = MakeViewportMatrix(0, 0, float(kWindowWidth), float(kWindowHeight), 0.0f, 1.0f);
 		CameraMove(cameraRotate, cameraTranslate, clickPosition, keys, preKeys);
-
 		/*=============================================================================*/
 		// 更新処理
-		
 		if (Update) {
-			pendulum.angularAcceleration = -(9.8f / pendulum.length) * std::sin(pendulum.angle);
-			pendulum.angularVelocity += pendulum.angularAcceleration * deltaTime;
-			pendulum.angle += pendulum.angularVelocity * deltaTime;
+			conicalPendulum.angularVelocity = sqrt(9.8f / (conicalPendulum.length * cos(conicalPendulum.halfApexAngle)));
+			conicalPendulum.angle += conicalPendulum.angularVelocity * deltaTime;
 		}
-
-		ball.position.x = pendulum.anchor.x + sin(pendulum.angle) * pendulum.length;
-		ball.position.y = pendulum.anchor.y - cos(pendulum.angle) * pendulum.length;
-		ball.position.z = pendulum.anchor.z; // z座標も更新
+		float radius = sin(conicalPendulum.halfApexAngle) * conicalPendulum.length;
+		float height = cos(conicalPendulum.halfApexAngle) * conicalPendulum.length;
+		ball.position.x = conicalPendulum.anchor.x + cos(conicalPendulum.angle) * radius;
+		ball.position.y = conicalPendulum.anchor.y - height;
+		ball.position.z = conicalPendulum.anchor.z - sin(conicalPendulum.angle) * radius;
 
 
 
@@ -102,14 +97,14 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
 		DrawSphere(ball, ViewProjectionMatrix, ViewportMatrix);
 		
-	// 3D座標を2Dスクリーン座標に変換する関数
+		// 3D座標を2Dスクリーン座標に変換する関数
 
 
 		// 描画処理
 	
 		Matrix4x4 VPMatrix = Multiply(ViewProjectionMatrix, ViewportMatrix);
 
-		Vector3 screenAnchor = Project(pendulum.anchor, VPMatrix);
+		Vector3 screenAnchor = Project(conicalPendulum.anchor, VPMatrix);
 		Vector3 screenBallPos = Project(ball.position, VPMatrix);
 
 

@@ -71,6 +71,14 @@ struct Pendulum {
 	float angularAcceleration;
 };
 
+struct ConicalPendulum {
+	Vector3 anchor;
+	float length;
+	float halfApexAngle;
+	float angle;
+	float angularVelocity;
+};
+
     // Vector3 : 加算
 Vector3 add(const Vector3& v1, const Vector3& v2) {
 	Vector3 result;
@@ -129,6 +137,8 @@ Vector3 Divide(Vector3 vec, float scalar) {
 	result.z = vec.z / scalar;
 	return result;
 }
+
+
 
 
 
