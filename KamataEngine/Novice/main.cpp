@@ -28,12 +28,8 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
     /*====================================================*/
 
-	ConicalPendulum conicalPendulum;
-	conicalPendulum.anchor = {0.0f, 1.0f, 0.0f};
-	conicalPendulum.length = 0.8f;
-	conicalPendulum.halfApexAngle = 0.7f;
-	conicalPendulum.angle = 0.0f;
-	conicalPendulum.angularVelocity = 0.0f;
+	Plane plane{1.0f, 0.0f, 1.0f, 0.0f};
+	
 
 	Ball ball{};
 	ball.position = {1.2f, 0.0f, 0.0f};
@@ -41,7 +37,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	ball.radius = 0.08f;
 	ball.color = BLUE;
 
-	float deltaTime = 1.0f / 60.0f;
+	//float deltaTime = 1.0f / 60.0f;
 
 	bool Update = false;
 
@@ -66,14 +62,9 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		/*=============================================================================*/
 		// 更新処理
 		if (Update) {
-			conicalPendulum.angularVelocity = sqrt(9.8f / (conicalPendulum.length * cos(conicalPendulum.halfApexAngle)));
-			conicalPendulum.angle += conicalPendulum.angularVelocity * deltaTime;
+		
 		}
-		float radius = sin(conicalPendulum.halfApexAngle) * conicalPendulum.length;
-		float height = cos(conicalPendulum.halfApexAngle) * conicalPendulum.length;
-		ball.position.x = conicalPendulum.anchor.x + cos(conicalPendulum.angle) * radius;
-		ball.position.y = conicalPendulum.anchor.y - height;
-		ball.position.z = conicalPendulum.anchor.z - sin(conicalPendulum.angle) * radius;
+		
 
 
 
@@ -94,21 +85,10 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		ImGui::End();
 		// 線分の両端をスクリーン座標系まで変換
 		DrawGrid(ViewProjectionMatrix, ViewportMatrix);
-
 		DrawSphere(ball, ViewProjectionMatrix, ViewportMatrix);
-		
-		// 3D座標を2Dスクリーン座標に変換する関数
 
-
-		// 描画処理
-	
-		Matrix4x4 VPMatrix = Multiply(ViewProjectionMatrix, ViewportMatrix);
-
-		Vector3 screenAnchor = Project(conicalPendulum.anchor, VPMatrix);
-		Vector3 screenBallPos = Project(ball.position, VPMatrix);
-
-
-		Novice::DrawLine((int)screenAnchor.x, (int)screenAnchor.y, (int)screenBallPos.x, (int)screenBallPos.y, WHITE);
+		// 矩形の描画
+		DrawPlane(plane, ViewProjectionMatrix, ViewportMatrix, WHITE);
 
 
 		///
