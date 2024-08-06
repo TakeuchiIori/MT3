@@ -563,6 +563,43 @@ Vector3 Multiply(const Vector3& vec, const Matrix4x4& mat) {
 	return result;
 }
 
+Vector3 WorldToScreen(const Vector3& worldPosition, int screenWidth, int screenHeight) {
+
+	// ビュー行列とプロジェクション行列を設定
+	Matrix4x4 viewMatrix = {
+	    {{1.0f, 0.0f, 0.0f, 0.0f}, {0.0f, 1.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 1.0f, -5.0f}, {0.0f, 0.0f, 0.0f, 1.0f}}
+    };
+	Matrix4x4 projectionMatrix = {
+	    {{1.0f, 0.0f, 0.0f, 0.0f}, {0.0f, 1.0f, 0.0f, 0.0f}, {0.0f, 0.0f, -1.0f, -1.0f}, {0.0f, 0.0f, -1.0f, 0.0f}}
+    };
+	// ビュー行列とプロジェクション行列の積を計算
+	Matrix4x4 viewProjectionMatrix;
+	for (int i = 0; i < 4; ++i) {
+		for (int j = 0; j < 4; ++j) {
+			viewProjectionMatrix.m[i][j] = 0.0f;
+			for (int k = 0; k < 4; ++k) {
+				viewProjectionMatrix.m[i][j] += viewMatrix.m[i][k] * projectionMatrix.m[k][j];
+			}
+		}
+	}
+
+	// ワールド座標をクリップ座標に変換
+	Vector3 clipSpacePosition = Transform(worldPosition, viewProjectionMatrix);
+
+	// クリップ座標から NDC へ
+	Vector3 ndcPosition;
+	ndcPosition.x = clipSpacePosition.x;
+	ndcPosition.y = clipSpacePosition.y;
+	ndcPosition.z = clipSpacePosition.z;
+
+	// NDC からスクリーン座標に変換
+	Vector3 screenPosition;
+	screenPosition.x = (ndcPosition.x * 0.5f + 0.5f) * screenWidth;
+	screenPosition.y = (ndcPosition.y * 0.5f + 0.5f) * screenHeight;
+	screenPosition.z = ndcPosition.z; // 深度値はそのまま
+
+	return screenPosition;
+}
 
 Matrix4x4 operator+(const Matrix4x4& m1, const Matrix4x4& m2) { return Add(m1, m2); }
 Matrix4x4 operator-(const Matrix4x4& m1, const Matrix4x4& m2) { return Subtract(m1, m2); }
